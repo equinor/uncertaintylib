@@ -28,14 +28,14 @@ def parse_requirements(filename):
         return file.read().splitlines()
 
 setup(
-    name='pvtlib',
-    version='1.7.0',
+    name='uncertaintylib',
+    version='0.1.0',
     author='Christian Hågenvik',
     author_email='chaagen2013@gmail.com',
-    description='A library containing various tools in the categories of thermodynamics, fluid mechanics, metering etc.',
+    description='A library containing functions used for estimating uncertainties',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/equinor/pvtlib',
+    url='https://github.com/equinor/uncertaintylib',
     packages=find_packages(),
     install_requires=parse_requirements('requirements.txt'),
     license='MIT',
@@ -45,5 +45,5 @@ setup(
         'Operating System :: OS Independent',
     ],
     python_requires='>=3.9, <3.12',
-    keywords='thermodynamics fluid-mechanics metering aga8',
+    keywords='uncertainty, unceratinty analysis, uncertainty estimation, uncertainty quantification',
 )
