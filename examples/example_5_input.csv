@@ -1,0 +1,15 @@
+input_name,mean,standard_uncertainty,standard_uncertainty_percent,distribution,min,max
+N2,0.83,0.068475,,normal,0,100
+CO2,1.84,0.06716,,normal,0,100
+C1,83.34,0.16668,,normal,0,100
+C2,5.62,0.06182,,normal,0,100
+C3,1.73,0.063145,,normal,0,100
+iC4,0.45,0.015525,,normal,0,100
+nC4,2.77,0.101105,,normal,0,100
+iC5,1.19,0.043435,,normal,0,100
+nC5,1.16,0.04234,,normal,0,100
+nC6,0.53,0.018285,,normal,0,100
+nC7,0.35,0.012075,,normal,0,100
+nC8,0.14,0.00483,,normal,0,100
+nC9,0.03,0.002775,,normal,0,100
+nC10,0.01,0.000925,,normal,0,100

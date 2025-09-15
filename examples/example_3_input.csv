@@ -1,0 +1,9 @@
+input_name,mean,standard_uncertainty,standard_uncertainty_percent,distribution,min,max,unit
+C,0.5,,0.25,normal,,,
+epsilon,0.9993,,0.00311,normal,,,
+D,300,,0.2,normal,,,mm
+d,150,,0.035,normal,,,mm
+deltaP,250.2,,0.03,normal,,,mbar
+P,100,,0.15,normal,,,bara
+m/Z,0.4,,0.216,normal,,,kg/mol
+T,323.15,,0.0464,normal,,,C

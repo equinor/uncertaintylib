@@ -29,7 +29,7 @@ def parse_requirements(filename):
 
 setup(
     name='uncertaintylib',
-    version='0.2.0',
+    version='1.0.0',
     author='Christian Hågenvik',
     author_email='chaagen2013@gmail.com',
     description='A library containing functions used for estimating uncertainties',
