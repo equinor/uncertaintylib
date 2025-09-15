@@ -18,8 +18,6 @@ Created on Thu Apr 18 13:11:41 2024
 
 import os
 import pandas as pd
-import sys
-sys.path.append('..')
 from uncertaintylib import uncertainty_functions
 
 
