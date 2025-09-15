@@ -19,31 +19,38 @@ pip install uncertaintylib
 
 The main interface is through functions in `uncertaintylib.uncertainty_functions`. You provide:
 - A Python function (inputs: flat dict, outputs: flat dict)
-- Input data as dictionaries specifying means and uncertainties
+- A dictionary containing 'mean' and 'standard_uncertainty' for each variable. These are provided as sub dictionaries. 
+- The standard uncertainty can also be given in relative terms (%), using the 'standard_uncertainty_percent' key
+- If both 'standard_uncertainty' and 'standard_uncertainty_percent', the largest of the two will be used. This can be useful for variables where for example noise dominates the uncertainty in the lower region (such as zero stability of a coriolis massflow meter)
+- 'min' and 'max' are only used in Monte Carlo calculations, to address the issue of non-physical distributions (for example distribution of mole-% of a component going below 0)
+- 'distribution' is used mainly by Monte Carlo, but also in cases where some of the inputs are settings (for example 0 or 1), where you dont want to pertubate or calculate sensitivity coefficients for that spesific input variable. In this case 'distribution' can be set to 'none', which will ignore that parameter. 
   
-Example input dictionary:
+Example usage:
 
 ```python
 inputs = {
-    "Q": {
-        "mean": 370,
-        "standard_uncertainty": 1,
-        "distribution": "normal",
-        "min": 0,
-        "max": None
-    },
-    "rho": {
-        "mean": 54,
-        "standard_uncertainty": 0.03,
-        "distribution": "normal",
-        "min": 0,
-        "max": None
-    }
+    'mean': {'Q': 370, 'rho': 54},
+    'standard_uncertainty': {'Q': 1, 'rho': 0.03},
+    'standard_uncertainty_percent': {'Q': 0.25, 'rho': 0.1},
+    'distribution': {'Q': 'normal', 'rho': 'normal'},
+    'min': {'Q': 0, 'rho': 0},
+    'max': {'Q': None, 'rho': None}
 }
-```
 
-- Each key is an input variable name.
-- Values are dictionaries specifying mean, standard uncertainty, distribution type, and optional min/max bounds.
+def calculate_massflow(inputs):
+    outputs = {}
+    
+    outputs['MassFlow'] = inputs['Q']*inputs['rho']
+
+    return outputs
+
+results = uncertainty_functions.calculate_uncertainty(
+    indata=inputs, 
+    function=calculate_massflow
+    )
+
+print(results)
+```
 
 
 ## Plotting Functionalities
