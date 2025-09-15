@@ -1,8 +1,18 @@
 
 import uncertainty_functions
 import matplotlib.pyplot as plt
+import pandas as pd
+from typing import Optional, Sequence, Dict
 
-def montecarlo_property_plot_and_table(data, property_id, xlim=None, property_name='', property_unit='', case_title='', round_props=None):
+def montecarlo_property_plot_and_table(
+    data: pd.DataFrame,
+    property_id: str,
+    xlim: Optional[Sequence[float]] = None,
+    property_name: str = '',
+    property_unit: str = '',
+    case_title: str = '',
+    round_props: Optional[Dict[str, int]] = None
+) -> plt.Figure:
     """
     Create a plot and table for a given property for a Monte Carlo run
 
@@ -117,9 +127,12 @@ def montecarlo_property_plot_and_table(data, property_id, xlim=None, property_na
     return fig
 
 
-
-
-def plot_uncertainty_contribution(res: dict, property_id: str, plot_title='', filter_top_x=0):
+def plot_uncertainty_contribution(
+    res: dict,
+    property_id: str,
+    plot_title: Optional[str] = '',
+    filter_top_x: int = 0
+) -> plt.Figure:
     """
     Plots the contribution of the input parameters to the total expanded uncertainty of a property.
 

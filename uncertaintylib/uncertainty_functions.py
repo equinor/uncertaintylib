@@ -4,8 +4,10 @@ import pandas as pd
 import numpy as np
 import scipy.stats
 
+from typing import Callable, Dict, Any, Optional
+
 #%% Uncertainty functions
-def calculate_uncertainty(indata: dict, function: callable) -> dict:
+def calculate_uncertainty(indata: dict, function: Callable[[dict], dict]) -> dict:
     """
     Analyze the uncertainty of output parameters for a given function and input data.
     The method used is the method described as "Determining combined standard uncertainty" for "Uncorrelated input quentities" 
@@ -115,7 +117,7 @@ def calculate_uncertainty(indata: dict, function: callable) -> dict:
 
 
 
-def calculate_sensitivity_coefficients(indata: dict, function: callable) -> tuple:
+def calculate_sensitivity_coefficients(indata: dict, function: Callable[[dict], dict]) -> dict:
     """
     Calculate the absolute and relative sensitivity coefficients for input parameters to a given function.
     
@@ -237,7 +239,7 @@ def calculate_sensitivity_coefficients(indata: dict, function: callable) -> tupl
 
 
 
-def monte_carlo_simulation(mc_input: dict, function: callable, n: int) -> pd.DataFrame:
+def monte_carlo_simulation(mc_input: dict, function: Callable[[dict], dict], n: int) -> pd.DataFrame:
     """
     Runs a Monte Carlo simulation for the given input arguments and the provided function and returns the evaluation of the function 
     with Monte Carlo data as a pandas DataFrame.
@@ -344,7 +346,7 @@ def monte_carlo_simulation(mc_input: dict, function: callable, n: int) -> pd.Dat
 
 
 
-def combined_standard_uncertainty(u_xi, ci=None):
+def combined_standard_uncertainty(u_xi: Dict[str, float], ci: Optional[Dict[str, float]] = None) -> float:
     """
     Calculates the combined standard uncertainty from a dictionary of input uncertainties `u_xi` and a dictionary 
     of sensitivity coefficients `ci`. Both the uncertainties and the sensitivity coefficients can be given either 
@@ -392,7 +394,14 @@ def combined_standard_uncertainty(u_xi, ci=None):
 
 
 #%% Helping functions - used by the uncertainty functions
-def generate_normal_distribution(mean, stddev, N, lower_boundary=-np.inf, upper_boundary=np.inf, iteration_limit=1000):
+def generate_normal_distribution(
+    mean: float,
+    stddev: float,
+    N: int,
+    lower_boundary: float = -np.inf,
+    upper_boundary: float = np.inf,
+    iteration_limit: int = 1000
+) -> np.ndarray:
     """
     Generates a random sample from a truncated normal distribution using rejection sampling.
     I.e. values outside the boundaries will be resampled. 
@@ -468,7 +477,7 @@ def generate_normal_distribution(mean, stddev, N, lower_boundary=-np.inf, upper_
 
 
 
-def standard_uncertainty_selector(indata: dict):
+def standard_uncertainty_selector(indata: dict) -> dict:
     """
     Selects either standard uncertainty or percentage-based standard uncertainty for each
     input parameter in a given dictionary, and returns the largest of the two.
@@ -615,7 +624,7 @@ def calculate_monte_carlo_statistics(dataframe: pd.DataFrame) -> pd.DataFrame:
     return statistics_df.T
 
 
-def monte_carlo_output_correlations(outputs, return_as_dataframe=False):
+def monte_carlo_output_correlations(outputs: pd.DataFrame, return_as_dataframe: bool = False) -> Any:
     """
     Calculate the Pearson correlation coefficients between each pair of outputs.
 
@@ -667,7 +676,7 @@ def monte_carlo_output_correlations(outputs, return_as_dataframe=False):
 
 
 
-def filter_uncertainty_results(tag_filter_string, uncertainty_results):
+def filter_uncertainty_results(tag_filter_string: str, uncertainty_results: dict) -> dict:
     """
     Filter uncertainty (from calculate_uncertainty) results by a specific tag.
     This is useful when calculate_uncertainty is applied for functions returning thousands of outputs
@@ -696,7 +705,7 @@ def filter_uncertainty_results(tag_filter_string, uncertainty_results):
   
   
     
-def compare_monte_carlo_to_conventional_uncertainty_calculation(MC_results, uncertainty_results):
+def compare_monte_carlo_to_conventional_uncertainty_calculation(MC_results: pd.DataFrame, uncertainty_results: dict) -> pd.DataFrame:
     '''
     Parameters
     ----------
