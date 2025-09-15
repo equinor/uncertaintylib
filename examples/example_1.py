@@ -12,15 +12,6 @@ import sys
 sys.path.append('..')
 from uncertaintylib import uncertainty_functions
 
-from uncertaintylib.uncertainty_functions import (
-    calculate_sensitivity_coefficients, 
-    monte_carlo_simulation, 
-    calculate_monte_carlo_statistics, 
-    monte_carlo_output_correlations, 
-    calculate_uncertainty, 
-    compare_monte_carlo_to_conventional_uncertainty_calculation
-)
-
 csv_path = os.path.join(os.path.dirname(__file__), 'example_1_input.csv')
 mc_input = pd.read_csv(csv_path).set_index('input_name').to_dict()
 
