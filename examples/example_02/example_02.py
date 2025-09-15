@@ -4,7 +4,7 @@
 Example 2: Uncertainty analysis for a simple mass flow calculation.
 
 This script:
-1. Loads input parameters from a CSV file in the same folder as the script.
+1. Defines input parameters directly as a dictionary.
 2. Defines a mass flow calculation function.
 3. Calculates sensitivity coefficients for each input.
 4. Runs a Monte Carlo simulation to propagate input uncertainties.
@@ -15,29 +15,23 @@ Created on Thu Apr 18 13:11:41 2024
 @author: CHHAG
 """
 
-
-import os
+from uncertaintylib import uncertainty_functions
 import pandas as pd
 
-from uncertaintylib import uncertainty_functions
-
-
-# Load input parameters from CSV file in the same folder as the script
-csv_path = os.path.join(os.path.dirname(__file__), 'example_2_input.csv')
-mc_input = pd.read_csv(csv_path).set_index('input_name').to_dict()
+# Input parameters defined directly as a dictionary
+mc_input = {
+    'mean': {'Q': 370, 'rho': 54},
+    'standard_uncertainty': {'Q': 1, 'rho': 0.03},
+    'standard_uncertainty_percent': {'Q': 0.25, 'rho': 0.1},
+    'distribution': {'Q': 'normal', 'rho': 'normal'},
+    'min': {'Q': 0, 'rho': 0},
+    'max': {'Q': None, 'rho': None}
+}
 
 def calculate_massflow(input_dict):
-    """
-    Calculates mass flow from input dictionary containing 'Q' and 'rho'.
-    Returns a dictionary with the result.
-    """
-    
     massflow = input_dict['Q']*input_dict['rho']
-    
     output_dict = {'massflow' : massflow}
-    
     return output_dict
-
 
 # Step 1: Calculate sensitivity coefficients for each input
 sensitivities = uncertainty_functions.calculate_sensitivity_coefficients(mc_input, calculate_massflow)
@@ -65,5 +59,3 @@ comparison = uncertainty_functions.compare_monte_carlo_to_conventional_uncertain
     uncertainty_results=uncertainty_results
 )
 print(comparison)
-
-

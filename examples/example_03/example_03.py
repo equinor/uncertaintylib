@@ -22,19 +22,12 @@ import numpy as np
 import math
 from uncertaintylib import uncertainty_functions
 
-
 # Load input parameters from CSV file in the same folder as the script
-csv_path = os.path.join(os.path.dirname(__file__), 'example_3_input.csv')
+csv_path = os.path.join(os.path.dirname(__file__), 'example_03_input.csv')
 mc_input = pd.read_csv(csv_path).set_index('input_name').to_dict()
 
 def calculate_massflow(input_dict):
-    """
-    Calculates mass flow from input dictionary using orifice meter equations.
-    Returns a dictionary with the result.
-    """
-    
     R = 8.314 #J/molK
-    
     C = input_dict['C']
     epsilon = input_dict['epsilon']
     D = input_dict['D']/1000 #m
@@ -43,14 +36,9 @@ def calculate_massflow(input_dict):
     P1 = input_dict['P'] * 10**5 #Pa
     T = input_dict['T']
     m_div_Z = input_dict['m/Z'] #kg/mol
-    
     qm = (C/np.sqrt(1-((d/D)**4)))*(epsilon*math.pi*(d**2)/4)*np.sqrt((2*P1*deltaP*m_div_Z)/(R*T))
-    
     output_dict = {'qm' : qm}
-    
     return output_dict
-
-
 
 # Step 1: Calculate sensitivity coefficients for each input
 sensitivities = uncertainty_functions.calculate_sensitivity_coefficients(mc_input, calculate_massflow)
@@ -78,8 +66,6 @@ comparison = uncertainty_functions.compare_monte_carlo_to_conventional_uncertain
     uncertainty_results=uncertainty_results
 )
 print(comparison)
-
-
 
 # Step 7: Plot Monte Carlo results and uncertainty contributions
 from uncertaintylib import plot_functions

@@ -15,14 +15,12 @@ Created on Thu Apr 18 13:11:41 2024
 @author: CHHAG
 """
 
-
 import os
 import pandas as pd
 from uncertaintylib import uncertainty_functions
 
-
 # Load input parameters from CSV file in the same folder as the script
-csv_path = os.path.join(os.path.dirname(__file__), 'example_1_input.csv')
+csv_path = os.path.join(os.path.dirname(__file__), 'example_01_input.csv')
 mc_input = pd.read_csv(csv_path).set_index('input_name').to_dict()
 
 def my_function(input_dict):
@@ -33,7 +31,7 @@ def my_function(input_dict):
     - How two inputs (x and y) can be used in the calculation of several outputs (a, b, c, d).
     - How a function input can be a fixed setting (setting_A), which is not varied in uncertainty analysis.
 
-    In the input CSV (examples/example_1_input.csv), a setting is handled by setting its distribution to 'none'.
+    In the input CSV (examples/example_01_input.csv), a setting is handled by setting its distribution to 'none'.
     This means the code will not calculate sensitivity coefficients for that particular input value, treating it as a constant.
 
     Args:
@@ -45,24 +43,17 @@ def my_function(input_dict):
     x = input_dict['x']
     y = input_dict['y']
     setting_A = input_dict['setting_A']
-    
-        
     a = x + y
     b = y - x
     c = x * y
-    
     if setting_A==0:
         d = y / x
     else:
         d = y / (x+1)
-    
     if setting_A%1!=0:
         raise Exception('Some exception')
-    
     output_dict = {'a': a, 'b': b, 'c': c, 'd': d, 'x_used' : x, 'y_used' : y, 'setting_A_used' : setting_A}
-    
     return output_dict
-
 
 # Step 1: Calculate sensitivity coefficients for each input
 sensitivities = uncertainty_functions.calculate_sensitivity_coefficients(mc_input, my_function)
