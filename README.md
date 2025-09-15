@@ -25,9 +25,11 @@ The main interface is through functions in `uncertaintylib.uncertainty_functions
 - 'min' and 'max' are only used in Monte Carlo calculations, to address the issue of non-physical distributions (for example distribution of mole-% of a component going below 0)
 - 'distribution' is used mainly by Monte Carlo, but also in cases where some of the inputs are settings (for example 0 or 1), where you dont want to pertubate or calculate sensitivity coefficients for that spesific input variable. In this case 'distribution' can be set to 'none', which will ignore that parameter. 
   
-Example usage:
+Example usage (standard uncertainty calculation):
 
 ```python
+from uncertaintylib import uncertainty_functions
+
 inputs = {
     'mean': {'Q': 370, 'rho': 54},
     'standard_uncertainty': {'Q': 1, 'rho': 0.03},
@@ -61,7 +63,6 @@ print(results)
 - **Uncertainty Contribution Plots:** Show the percentage contribution of each input variable to the total expanded uncertainty of an output property.
 
 All plots are generated using matplotlib and can be customized or saved using standard matplotlib methods. See the API docstrings in `plot_functions.py` for details.
-
 
 ## Documentation & Examples
 
