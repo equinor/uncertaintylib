@@ -116,8 +116,10 @@ def montecarlo_property_plot_and_table(
     fig.tight_layout()
 
     fig_title = f'{property_id} Monte Carlo distribution'
-
-    fig.canvas.manager.window.setWindowTitle(fig_title)
+    try:
+        fig.canvas.manager.window.setWindowTitle(fig_title)
+    except Exception:
+        pass
 
     # fig.savefig(f'plots\{fig_title}.png')
 
