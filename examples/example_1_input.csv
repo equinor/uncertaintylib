@@ -1,0 +1,5 @@
+input_name,mean,standard_uncertainty,standard_uncertainty_percent,distribution,min,max
+x,5,1,,normal,0,
+y,5,1,,normal,0,
+setting_A,,1,,normal,,
+z,,,,normal,,
