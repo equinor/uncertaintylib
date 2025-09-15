@@ -62,8 +62,8 @@ def calculate_uncertainty(indata: dict, function: callable) -> dict:
     rel_sensitivity_coefficients = sensitivity_results['relative_sensitivity_coefficients']
     baseline_results = sensitivity_results['baseline_results']
     
-    #Nested dictionary of varians for each input parameter for each output parameter
-    varians = {}
+    #Nested dictionary of variance for each input parameter for each output parameter
+    variance = {}
     
     #Dictionary of Combined Standard Uncertainty (u) for each output parameter
     u = {}
@@ -75,49 +75,39 @@ def calculate_uncertainty(indata: dict, function: callable) -> dict:
     U_perc = {}
     
     #Dictionary containing the percentage contribution of each input variabel to the uncertainty in an output variabel
-    #The contribution is calculated as the % in varians
+    #The contribution is calculated as the % in variance
     contribution = {}
     
     for output in baseline_results:
-        
-        output_varians = {}
-        
-        #Calculate the varians of each contributor to the uncertainty
+        output_variance = {}
+        #Calculate the variance of each contributor to the uncertainty
         for in_parameter in abs_sensitivity_coefficients:
-            
             #Handle case where the standard uncertainty of the input parameter is nan (for example for settings), or the sensitivity coefficient is nan
             if np.isnan(standard_uncertainty_used[in_parameter]) or np.isnan(abs_sensitivity_coefficients[in_parameter][output]):
                 var = 0.0
             else:
                 var = (abs_sensitivity_coefficients[in_parameter][output] * standard_uncertainty_used[in_parameter])**2
-            
-            output_varians[in_parameter] = var
-        
-        varians[output] = output_varians
-    
+            output_variance[in_parameter] = var
+        variance[output] = output_variance
         #Calculate Combined Standard Uncertainty
-        u[output] = np.sqrt(sum(output_varians.values()))
-        
+        u[output] = np.sqrt(sum(output_variance.values()))
         #Calculate Expanded Uncertainty (95% confidence level)(U,k=2)
         U[output] = u[output]*2
-        
         #Calculate Relative Expanded Uncertainty (95% confidence level)(U, k=2)
         if np.isnan(baseline_results[output]) or baseline_results[output]==0.0:
             U_perc[output] = np.nan
         else:
             U_perc[output] = 100*U[output]/abs(baseline_results[output])
-        
         #Calculate uncertainty contribution using the sigma-normalized derivatives (eq 1.12 in Saltelli, A., et al. (2008). Global sensitivity analysis: the primer, John Wiley & Sons.)
-        #First check if the sum of the varianses is zero, which will give a divide by zero error
+        #First check if the sum of the variances is zero, which will give a divide by zero error
         #This can for example be the case if all sensitivity coefficients are 0
-        if sum(output_varians.values())==0:
-            contribution[output] = {key : np.nan for key in output_varians}
+        if sum(output_variance.values())==0:
+            contribution[output] = {key : np.nan for key in output_variance}
         else:    
-            contribution[output] = {key : 100*val/sum(output_varians.values()) for key, val in output_varians.items()}
-
+            contribution[output] = {key : 100*val/sum(output_variance.values()) for key, val in output_variance.items()}
 
     return {'value' : baseline_results,
-            'varians' : varians, 
+            'variance' : variance, 
             'contribution' : contribution, 
             'u' : u, 
             'U' : U, 
