@@ -1,5 +1,4 @@
 
-import uncertainty_functions
 import matplotlib.pyplot as plt
 import pandas as pd
 from typing import Optional, Sequence, Dict
@@ -48,7 +47,8 @@ def montecarlo_property_plot_and_table(
     if case_title=='':
         case_title = f'Monte Carlo uncertainty distribution - {property_name}'
     
-    #Calculate monte carlo statistics
+    # Import inside function to avoid module-level exposure
+    from . import uncertainty_functions
     mc_stats = uncertainty_functions.calculate_monte_carlo_statistics(data)
     
     if property_name == '':
@@ -158,6 +158,8 @@ def plot_uncertainty_contribution(
         A Figure object that contains the plot.
     """
     
+    # Import inside function to avoid module-level exposure
+    from . import uncertainty_functions
     case_res = res['contribution'][property_id]
 
     if filter_top_x != 0:
