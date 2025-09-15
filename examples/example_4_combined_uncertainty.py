@@ -7,8 +7,7 @@ Created on Thu May 23 11:14:03 2024
 
 import sys
 sys.path.append('..')
-
-from uncertainty_functions import combined_standard_uncertainty
+from uncertaintylib import uncertainty_functions
 
 #Obtained from example 3 - hardcoded here. Based on orifice meter in NFOGM gasmet uncertainty tool
 u= {'C': 0.25,
@@ -31,10 +30,8 @@ ci = {'C': 1.0000000000000107,
 
 
 #Calculates combined standard uncertainty - k=1
-U = combined_standard_uncertainty(u,ci)
-
+U = uncertainty_functions.combined_standard_uncertainty(u,ci)
 U_expanded = U*2
-
 print('Based on combined_standard_uncertainty function')
 print(U_expanded)
 
@@ -56,7 +53,7 @@ u2 = {
       'm/Z' : 0.216
       }
 
-U2 = combined_standard_uncertainty(u2)*2
+U2 = uncertainty_functions.combined_standard_uncertainty(u2)*2
 print('\nGasmet NFOGM tool, USM with single P&T and GC:')
 print(round(U2,5))
 print('From NFOGM tool: 0.647')
