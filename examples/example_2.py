@@ -1,4 +1,3 @@
-from uncertaintylib import uncertainty_functions
 # -*- coding: utf-8 -*-
 """
 Created on Thu Apr 18 13:11:41 2024
@@ -11,7 +10,6 @@ import os
 import pandas as pd
 import sys
 sys.path.append('..')
-import uncertaintylib.uncertainty_functions as uncertainty_functions
 
 from uncertaintylib import uncertainty_functions
 
