@@ -193,3 +193,4 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 .vscode/settings.json
+examples/example_06/.virtual_documents/example_06.ipynb
