@@ -1,4 +1,4 @@
-![uncertaintylib logo](uncertaintylib.png)
+![uncertaintylib logo](images/uncertaintylib.png)
 
 `uncertaintylib` is a Python library for estimating and propagating uncertainties in engineering and scientific calculations. It is designed to work with any Python function whose inputs and outputs are flat dictionaries.
 
