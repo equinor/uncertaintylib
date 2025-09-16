@@ -1,0 +1,6 @@
+# Requirements for example_06 Jupyter notebook
+jupyter
+pvtlib
+uncertaintylib
+pandas
+matplotlib
