@@ -24,7 +24,7 @@ The main interface is through functions in `uncertaintylib.uncertainty_functions
 - If both 'standard_uncertainty' and 'standard_uncertainty_percent', the largest of the two will be used. This can be useful for variables where for example noise dominates the uncertainty in the lower region (such as zero stability of a coriolis massflow meter)
 - 'min' and 'max' are only used in Monte Carlo calculations, to address the issue of non-physical distributions (for example distribution of mole-% of a component going below 0)
 - 'distribution' is used mainly by Monte Carlo, but also in cases where some of the inputs are settings (for example 0 or 1), where you dont want to pertubate or calculate sensitivity coefficients for that spesific input variable. In this case 'distribution' can be set to 'none', which will ignore that parameter. 
-  
+
 Example usage (standard uncertainty calculation):
 
 ```python
@@ -54,6 +54,7 @@ results = uncertainty_functions.calculate_uncertainty(
 print(results)
 ```
 
+Another example, [Example 06](https://github.com/equinor/uncertaintylib/blob/main/examples/example_06/example_06.ipynb), demonstrates uncertainty calculations for a natural gas metering station, demonstrating usage of many of the functions available in this library. 
 
 ## Plotting Functionalities
 
