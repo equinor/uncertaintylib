@@ -30,7 +30,7 @@ def parse_requirements(filename):
 
 setup(
     name='uncertaintylib',
-    version='1.0.0',
+    version='1.0.1',
     author='Christian Hågenvik',
     author_email='chaagen2013@gmail.com',
     description='A library containing functions used for estimating uncertainties',
@@ -45,6 +45,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.9, <3.12',
-    keywords='uncertainty, unceratinty analysis, uncertainty estimation, uncertainty quantification',
+    python_requires='>=3.9',
+    keywords='uncertainty, uncertainty analysis, uncertainty estimation, uncertainty quantification',
 )
