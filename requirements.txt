@@ -2,3 +2,4 @@ numpy
 scipy
 pandas
 matplotlib
+fonttools>=4.60.2 
