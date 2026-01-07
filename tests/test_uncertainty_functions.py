@@ -254,6 +254,10 @@ def _usm_metering_station(inputs):
 def test_calculate_uncertainty_05():
     '''
     Calculates relative expanded uncertainty in mass flow rate calculated from an ultrasonic flowmeter, composition from a GC and pressure and temperature measurements
+
+    The test is based on example from NFOGM GasMet app (https://gasmetapp.web.norce.cloud/)
+    using a single ultrasonic flowmeter with online GC, single P&T.
+    Compositional uncertainties are set to NORSOK I-106
     '''
 
     # Define input data for uncertainty analysis
