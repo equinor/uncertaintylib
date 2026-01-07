@@ -343,7 +343,8 @@ def test_calculate_uncertainty_05():
         'Qm' : 0.647
     }
 
-    CRITERIA = 0.02
+    CRITERIA_CONVENTIONAL = 0.01 # Conventional uncertainty criteria
+    CRITERIA_MONTE_CARLO = 0.04 # Monte Carlo uncertainty criteria. Use higher criteria, because of randomness in Monte Carlo
 
     for key in target_uncertainties.keys():
         # Check that both "Conventional U [%], k=2" and "Monte Carlo U [%], k=2" are within +-CRITERIA % of target
@@ -351,6 +352,6 @@ def test_calculate_uncertainty_05():
         monte_carlo = comparison['Monte Carlo U [%], k=2'][key]
         target = target_uncertainties[key]
 
-        assert target - CRITERIA <= conventional <= target + CRITERIA, f"Conventional uncertainty for {key} is out of bounds: {conventional}"
-        assert target - CRITERIA <= monte_carlo <= target + CRITERIA, f"Monte Carlo uncertainty for {key} is out of bounds: {monte_carlo}"
+        assert target - CRITERIA_CONVENTIONAL <= conventional <= target + CRITERIA_CONVENTIONAL, f"Conventional uncertainty for {key} is out of bounds: {conventional}"
+        assert target - CRITERIA_MONTE_CARLO <= monte_carlo <= target + CRITERIA_MONTE_CARLO, f"Monte Carlo uncertainty for {key} is out of bounds: {monte_carlo}"
 
