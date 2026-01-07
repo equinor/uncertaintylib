@@ -319,18 +319,34 @@ def test_calculate_uncertainty_05():
     result = uncertainty_functions.calculate_uncertainty(data,_usm_metering_station)
 
     # Calculate the uncertainty using the Monte Carlo method
-    mc_result = uncertainty_functions.monte_carlo_simulation(data, _usm_metering_station, 1000)
+    mc_result = uncertainty_functions.monte_carlo_simulation(data, _usm_metering_station, 5000)
     mc_stats = uncertainty_functions.calculate_monte_carlo_statistics(mc_result) # Retrieve mean, standard deviations etc from the output distributions
 
+    # Compare Monte Carlo results to conventional uncertainty results
+    comparison = uncertainty_functions.compare_monte_carlo_to_conventional_uncertainty_calculation(
+        uncertainty_results=result,
+        MC_results=mc_result,
+    )
 
+    # Print comparison results
     if True:
-        # Compare Monte Carlo results to conventional uncertainty results
-        comparison = uncertainty_functions.compare_monte_carlo_to_conventional_uncertainty_calculation(
-            uncertainty_results=result,
-            MC_results=mc_result,
-        )
         print(comparison)
 
+    # Target uncertainties from NFOGM GasMetApp
+    target_uncertainties = {
+        'rho' : 0.534,
+        'm/Z' : 0.432,
+        'Qm' : 0.647
+    }
 
+    CRITERIA = 0.02
 
-    pass
+    for key in target_uncertainties.keys():
+        # Check that both "Conventional U [%], k=2" and "Monte Carlo U [%], k=2" are within +-CRITERIA % of target
+        conventional = comparison['Conventional U [%], k=2'][key]
+        monte_carlo = comparison['Monte Carlo U [%], k=2'][key]
+        target = target_uncertainties[key]
+
+        assert target - CRITERIA <= conventional <= target + CRITERIA, f"Conventional uncertainty for {key} is out of bounds: {conventional}"
+        assert target - CRITERIA <= monte_carlo <= target + CRITERIA, f"Monte Carlo uncertainty for {key} is out of bounds: {monte_carlo}"
+
