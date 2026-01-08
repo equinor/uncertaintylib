@@ -1,0 +1,5 @@
+# Requirements for example_07 Jupyter notebook
+jupyter
+pvtlib>=1.10.0
+uncertaintylib
+pandas

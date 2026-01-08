@@ -1,0 +1,13 @@
+input_name,unit,mean,standard_uncertainty,standard_uncertainty_percent,distribution,min,max
+P,bara,100.0,0.15,,normal,,
+T,C,50.0,0.15,,normal,,
+measured_sos,m/s,433.0,,0.1,normal,,
+N2,mol%,1.0,0.0344,,normal,0,100
+CO2,mol%,2.0,0.0191,,normal,0,100
+C1,mol%,90.0,0.0,,normal,0,100
+C2,mol%,6.4,0.0329,,normal,0,100
+C3,mol%,0.5,0.0126,,normal,0,100
+iC4,mol%,0.05,0.0026,,normal,0,100
+nC4,mol%,0.05,0.0025,,normal,0,100
+GERG_kappa_uncertainty_factor,-,1.0,,0.05,normal,,
+GERG_Z_uncertainty_factor,-,1.0,,0.05,normal,,
