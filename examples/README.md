@@ -20,5 +20,26 @@ Divided into two parts:
 ## example_05
 Analyzes uncertainty in the calculation of total molar mass from gas composition using AGA8 molar masses. Includes sensitivity analysis and Monte Carlo simulation.
 
+## example_06
+Comprehensive uncertainty analysis for a gas metering station with an Ultrasonic Flowmeter (USM), Gas Chromatograph (GC), and dual pressure/temperature measurements. **Presented as a Jupyter Notebook.**
+- Calculates mass flow and standard volumetric flow
+- Uses GERG-2008 equation of state for gas properties
+- Includes USM calibration curve interpolation
+- Demonstrates both analytical uncertainty calculations and Monte Carlo simulation (10,000 iterations)
+- Provides detailed visualization of uncertainty contributions
+- Plots calibration curves and operating points
+- Input data loaded from CSV file
+
+## example_07
+Demonstrates uncertainty analysis for gas properties (density and molar mass) calculated from measured speed of sound. **Presented as a Jupyter Notebook.**
+- Uses GERG-2008 equation of state to calculate isentropic exponent (kappa) and compressibility factor (Z)
+- Calculates density and molar mass from measured speed of sound using thermodynamic relationships
+- **Includes model uncertainty factors** to account for GERG-2008 equation of state limitations (0.05% uncertainty on kappa and Z)
+- Demonstrates both analytical uncertainty calculations and Monte Carlo simulation (10,000 iterations)
+- Shows uncertainty contribution analysis to identify dominant uncertainty sources
+- Visualizes probability distributions of output parameters
+- Separates measurement uncertainty from model uncertainty
+- Input data loaded from CSV file
+
 ---
-Each example uses the `uncertaintylib` library to perform uncertainty analysis and visualize results. Input parameters are either loaded from a CSV file in the same folder or, for example_02, defined directly in the code.
+Each example uses the `uncertaintylib` library to perform uncertainty analysis and visualize results. Input parameters are either loaded from a CSV file in the same folder or, for example_02, defined directly in the code. Examples 06 and 07 are provided as Jupyter Notebooks for interactive exploration and include both analytical and Monte Carlo methods for uncertainty propagation.
