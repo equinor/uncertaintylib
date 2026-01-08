@@ -26,13 +26,13 @@ The uncertainty analysis propagates uncertainties from all input parameters, inc
 ## Input Data
 
 Input parameters are specified in `data.csv`:
-- **Pressure** (P): 100.0 bara ± 0.15 bara
-- **Temperature** (T): 50.0 °C ± 0.15 °C
-- **Measured speed of sound**: 433.0 m/s ± 0.1% (relative uncertainty)
+- **Pressure** (P): 100.0 bara ± 0.3 bara (95 % conf)
+- **Temperature** (T): 50.0 °C ± 0.3 °C  (95 % conf)
+- **Measured speed of sound**: 433.0 m/s ± 0.2%  (95 % conf)
 - **Gas composition**: Natural gas with 7 components (N2, CO2, C1, C2, C3, iC4, nC4)
 - **GERG model uncertainty factors**: 
-  - `GERG_kappa_uncertainty_factor`: Mean = 1.0, uncertainty = 0.05% (accounts for model uncertainty in isentropic exponent)
-  - `GERG_Z_uncertainty_factor`: Mean = 1.0, uncertainty = 0.05% (accounts for model uncertainty in compressibility factor)
+  - `GERG_kappa_uncertainty_factor`: Mean = 1.0, uncertainty = 0.1%  (95 % conf) (accounts for model uncertainty in isentropic exponent)
+  - `GERG_Z_uncertainty_factor`: Mean = 1.0, uncertainty = 0.1%  (95 % conf) (accounts for model uncertainty in compressibility factor)
 
 Each input parameter includes:
 - Mean value
