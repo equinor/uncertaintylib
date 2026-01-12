@@ -41,5 +41,16 @@ Demonstrates uncertainty analysis for gas properties (density and molar mass) ca
 - Separates measurement uncertainty from model uncertainty
 - Input data loaded from CSV file
 
+## example_08
+Demonstrates **parallel processing for Monte Carlo simulations** to reduce computation time for large-scale uncertainty analysis. Based on the same orifice meter mass flow calculation as Example 03.
+- Compares sequential vs. parallelized Monte Carlo simulation (1,000,000 perturbations)
+- Uses Python's `multiprocessing.Pool` to distribute calculations across all available CPU cores
+- Splits simulations into equal-sized batches for parallel execution
+- Provides detailed performance metrics: speedup factor, execution time comparison, and percentage time reduction
+- Validates that parallel results match sequential results statistically
+- Demonstrates how to achieve 4x-8x speedup on multi-core processors
+- Shows when parallel processing is beneficial (large N > 100,000 simulations)
+- Input data loaded from CSV file (same as Example 03)
+
 ---
-Each example uses the `uncertaintylib` library to perform uncertainty analysis and visualize results. Input parameters are either loaded from a CSV file in the same folder or, for example_02, defined directly in the code. Examples 06 and 07 are provided as Jupyter Notebooks for interactive exploration and include both analytical and Monte Carlo methods for uncertainty propagation.
+Each example uses the `uncertaintylib` library to perform uncertainty analysis and visualize results. Input parameters are either loaded from a CSV file in the same folder or, for example_02, defined directly in the code. Examples 06 and 07 are provided as Jupyter Notebooks for interactive exploration and include both analytical and Monte Carlo methods for uncertainty propagation. Example 08 demonstrates how to use parallel processing to accelerate Monte Carlo simulations for computationally intensive uncertainty analyses.
