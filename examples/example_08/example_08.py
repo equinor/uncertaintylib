@@ -49,10 +49,6 @@ import time
 from multiprocessing import Pool, cpu_count
 from uncertaintylib import uncertainty_functions
 
-# Load input parameters from CSV file in the same folder as the script
-csv_path = os.path.join(os.path.dirname(__file__), 'example_03_input.csv')
-mc_input = pd.read_csv(csv_path).set_index('input_name').to_dict()
-
 def calculate_massflow(input_dict):
     R = 8.314 #J/molK
     C = input_dict['C']
@@ -67,82 +63,93 @@ def calculate_massflow(input_dict):
     output_dict = {'qm' : qm}
     return output_dict
 
-N = 1000000
-SEP = "="*80  # Separator line for output formatting
-
-print(SEP)
-print("BASELINE: Sequential Monte Carlo Simulation")
-print(SEP)
-
-# Step 1: Run Monte Carlo simulation to propagate input uncertainties
-start_time = time.time()
-mc_res = uncertainty_functions.monte_carlo_simulation(mc_input, calculate_massflow, N)
-mc_stats = uncertainty_functions.calculate_monte_carlo_statistics(mc_res)
-end_time = time.time()
-baseline_time = end_time - start_time
-
-# Step 2: Print Monte Carlo statistics
-print("\nBaseline Statistics:")
-print(mc_stats)
-print(f"\nBaseline Execution time: {baseline_time:.2f} seconds")
-
-print("\n" + SEP)
-print("PARALLEL: Batch Monte Carlo Simulation")
-print(SEP)
-
 # Function to run a single batch
-def run_batch(args):
+def run_batch(batch_size):
     """Run Monte Carlo simulation for a single batch"""
-    batch_size, mc_input, calculate_massflow = args
+    # Load input parameters inside the function to avoid pickling issues
+    csv_path = os.path.join(os.path.dirname(__file__), 'example_03_input.csv')
+    mc_input = pd.read_csv(csv_path).set_index('input_name').to_dict()
     return uncertainty_functions.monte_carlo_simulation(mc_input, calculate_massflow, batch_size)
 
-# Parallel processing
-num_processes = cpu_count()  # Use all available CPU cores
-batch_size = N // num_processes
+if __name__ == '__main__':
+    # Load input parameters from CSV file in the same folder as the script
+    csv_path = os.path.join(os.path.dirname(__file__), 'example_03_input.csv')
+    mc_input = pd.read_csv(csv_path).set_index('input_name').to_dict()
+    
+    N = 1000000
+    SEP = "="*80  # Separator line for output formatting
 
-print(f"\nNumber of processes: {num_processes}")
-print(f"Batch size per process: {batch_size}")
-print(f"Total simulations: {num_processes * batch_size}")
+    print(SEP)
+    print("BASELINE: Sequential Monte Carlo Simulation")
+    print(SEP)
 
-# Prepare arguments for parallel execution
-batch_args = [(batch_size, mc_input, calculate_massflow) for _ in range(num_processes)]
+    # Step 1: Run Monte Carlo simulation to propagate input uncertainties
+    start_time = time.time()
+    mc_res = uncertainty_functions.monte_carlo_simulation(mc_input, calculate_massflow, N)
+    mc_stats = uncertainty_functions.calculate_monte_carlo_statistics(mc_res)
+    end_time = time.time()
+    baseline_time = end_time - start_time
 
-# Run parallel batches
-start_time_parallel = time.time()
-with Pool(processes=num_processes) as pool:
-    batch_results = pool.map(run_batch, batch_args)
-end_time_parallel = time.time()
+    # Step 2: Print Monte Carlo statistics
+    print("\nBaseline Statistics:")
+    print(mc_stats)
+    print(f"\nBaseline Execution time: {baseline_time:.2f} seconds")
 
-# Concatenate results
-mc_res_parallel = pd.concat(batch_results, ignore_index=True)
-mc_stats_parallel = uncertainty_functions.calculate_monte_carlo_statistics(mc_res_parallel)
-parallel_time = end_time_parallel - start_time_parallel
+    print("\n" + SEP)
+    print("PARALLEL: Batch Monte Carlo Simulation")
+    print(SEP)
 
-print("\nParallel Statistics:")
-print(mc_stats_parallel)
-print(f"\nParallel Execution time: {parallel_time:.2f} seconds")
+    # Parallel processing
+    num_processes = cpu_count()  # Use all available CPU cores
 
-print("\n" + SEP)
-print("COMPARISON")
-print(SEP)
-print(f"\nComparing sequential vs parallel Monte Carlo simulation:")
-print(f"  - Total perturbations (N): {N}")
-print(f"  - Number of parallel processes: {num_processes}")
-print(f"  - Perturbations per process: {batch_size}")
-print("\nPerformance Metrics:")
-print(SEP)
-print(f"Baseline time: {baseline_time:.2f} seconds")
-print(f"Parallel time: {parallel_time:.2f} seconds")
-print(f"Difference: {baseline_time - parallel_time:.2f} seconds")
-print(f"Speedup: {baseline_time / parallel_time:.2f}x")
-print(f"Percentage reduction in time: {(1 - parallel_time/baseline_time)*100:.1f}%")
+    if num_processes>4:
+        num_processes=4
 
-print("\nStatistics Comparison:")
-print(f"Baseline mean: {mc_stats.loc['qm', 'mean']:.6f}")
-print(f"Parallel mean: {mc_stats_parallel.loc['qm', 'mean']:.6f}")
-print(f"Difference: {abs(mc_stats.loc['qm', 'mean'] - mc_stats_parallel.loc['qm', 'mean']):.6e}")
+    batch_size = N // num_processes
 
-print(f"\nBaseline std: {mc_stats.loc['qm', 'std_dev']:.6f}")
-print(f"Parallel std: {mc_stats_parallel.loc['qm', 'std_dev']:.6f}")
-print(f"Difference: {abs(mc_stats.loc['qm', 'std_dev'] - mc_stats_parallel.loc['qm', 'std_dev']):.6e}")
+    print(f"\nNumber of processes: {num_processes}")
+    print(f"Batch size per process: {batch_size}")
+    print(f"Total simulations: {num_processes * batch_size}")
+
+    # Prepare arguments for parallel execution - just pass batch_size
+    batch_args = [batch_size for _ in range(num_processes)]
+
+    # Run parallel batches
+    start_time_parallel = time.time()
+    with Pool(processes=num_processes) as pool:
+        batch_results = pool.map(run_batch, batch_args)
+    end_time_parallel = time.time()
+
+    # Concatenate results
+    mc_res_parallel = pd.concat(batch_results, ignore_index=True)
+    mc_stats_parallel = uncertainty_functions.calculate_monte_carlo_statistics(mc_res_parallel)
+    parallel_time = end_time_parallel - start_time_parallel
+
+    print("\nParallel Statistics:")
+    print(mc_stats_parallel)
+    print(f"\nParallel Execution time: {parallel_time:.2f} seconds")
+
+    print("\n" + SEP)
+    print("COMPARISON")
+    print(SEP)
+    print(f"\nComparing sequential vs parallel Monte Carlo simulation:")
+    print(f"  - Total perturbations (N): {N}")
+    print(f"  - Number of parallel processes: {num_processes}")
+    print(f"  - Perturbations per process: {batch_size}")
+    print("\nPerformance Metrics:")
+    print(SEP)
+    print(f"Baseline time: {baseline_time:.2f} seconds")
+    print(f"Parallel time: {parallel_time:.2f} seconds")
+    print(f"Difference: {baseline_time - parallel_time:.2f} seconds")
+    print(f"Speedup: {baseline_time / parallel_time:.2f}x")
+    print(f"Percentage reduction in time: {(1 - parallel_time/baseline_time)*100:.1f}%")
+
+    print("\nStatistics Comparison:")
+    print(f"Baseline mean: {mc_stats.loc['qm', 'mean']:.6f}")
+    print(f"Parallel mean: {mc_stats_parallel.loc['qm', 'mean']:.6f}")
+    print(f"Difference: {abs(mc_stats.loc['qm', 'mean'] - mc_stats_parallel.loc['qm', 'mean']):.6e}")
+
+    print(f"\nBaseline std: {mc_stats.loc['qm', 'std_dev']:.6f}")
+    print(f"Parallel std: {mc_stats_parallel.loc['qm', 'std_dev']:.6f}")
+    print(f"Difference: {abs(mc_stats.loc['qm', 'std_dev'] - mc_stats_parallel.loc['qm', 'std_dev']):.6e}")
 
