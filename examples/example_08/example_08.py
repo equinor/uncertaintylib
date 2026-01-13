@@ -19,10 +19,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-"""
 
-import os
-"""
 Monte Carlo Batch Processing Comparison Script
 
 This script compares the performance of sequential vs. parallelized Monte Carlo simulations
@@ -65,6 +62,7 @@ Output:
 - Execution time comparison and speedup metrics
 - Statistical validation comparing both methods
 """
+import os
 import pandas as pd
 import numpy as np
 import math
