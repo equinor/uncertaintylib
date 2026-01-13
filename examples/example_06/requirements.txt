@@ -1,5 +1,5 @@
 # Requirements for example_06 Jupyter notebook
-jupyter
+notebook
 pvtlib
 uncertaintylib
 pandas
