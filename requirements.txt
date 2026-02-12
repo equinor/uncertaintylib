@@ -3,3 +3,4 @@ scipy>=1.11.4
 pandas>=2.1.4
 matplotlib>=3.9.0
 fonttools>=4.60.2 # Dependency of matplotlib. Pinned because of dependabot alert.
+pillow>=12.1.1 # Dependency of matplotlib. Pinned because of dependabot alert.
