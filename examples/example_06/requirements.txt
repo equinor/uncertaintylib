@@ -3,4 +3,3 @@ notebook
 pvtlib
 uncertaintylib
 pandas
-matplotlib
