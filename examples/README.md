@@ -52,5 +52,18 @@ Demonstrates **parallel processing for Monte Carlo simulations** to reduce compu
 - Shows when parallel processing is beneficial (large N > 100,000 simulations)
 - Input data loaded from CSV file (same as Example 03)
 
+## 09 - Compositional uncertainties
+Demonstrates **uncertainty estimation for gas composition** using different methods from standards and scientific literature, and shows how compositional uncertainties propagate to calculated gas density.
+- Compares three compositional uncertainty estimation methods:
+  - **ASTM D1945**: Standard reproducibility values
+  - **NORSOK I-106**: Molar mass-based uncertainty estimation
+  - **Hagenvik et al. (2024)**: Empirical power law method from K-lab parallel tests
+- Uses **GERG-2008 equation of state** (via pvtlib) to calculate gas density
+- Analyzes two gas compositions: rich gas (high C2+ content) and lean gas (high methane)
+- Isolates compositional effects by setting pressure and temperature uncertainties to zero
+- Identifies top contributors to density uncertainty
+- Demonstrates integration of `uncertaintylib.uncertainty_models` with core uncertainty functions
+- **Input compositions defined directly in the script**
+
 ---
 Each example uses the `uncertaintylib` library to perform uncertainty analysis and visualize results. Input parameters are either loaded from a CSV file in the same folder or, for example 02, defined directly in the code. Examples 06 and 07 are provided as Jupyter Notebooks for interactive exploration and include both analytical and Monte Carlo methods for uncertainty propagation. Example 08 demonstrates how to use parallel processing to accelerate Monte Carlo simulations for computationally intensive uncertainty analyses.
