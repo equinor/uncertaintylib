@@ -21,6 +21,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from . import uncertainty_functions
-from . import plot_functions
-from . import uncertainty_models
+"""
+Uncertainty estimation models for various parameters.
+
+This module contains functions that estimate uncertainties for specific
+parameter types based on established methods from standards, scientific
+papers, and empirical relationships. Each submodule provides functions
+that return uncertainty estimates in the standard uncertaintylib format.
+
+Available submodules:
+- gas_composition: Uncertainty estimation for gas composition measurements
+"""
+
+from . import gas_composition
+
+__all__ = ['gas_composition']
