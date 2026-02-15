@@ -158,13 +158,14 @@ def component_uncertainty_from_ASTM_D1945(composition_mole_percent: Dict[str, fl
 
 def component_uncertainty_from_norsok_I106(composition_mole_percent: Dict[str, float]) -> dict:
     """
-    Estimate gas composition uncertainty according to NORSOK I-106 standard.
+    Estimate gas composition uncertainty according to NORSOK I-106:2014 standard.
     
     This function calculates the expanded uncertainty (k=2) for gas composition 
-    components based on the NORSOK I-106 standard. The uncertainty depends on 
+    components based on the NORSOK I-106:2014 standard. The uncertainty depends on 
     the mole fraction of each component and the ratio of average molar mass to 
     component molar mass. Molar masses are automatically retrieved from GERG-2008 
-    reference values.
+    reference values. NORSOK I-106 only provides component uncertainty down to 0.5 mol%. 
+    This function uses the same uncertainty value below 0.5 mol% to handle low concentration components.
     
     Parameters
     ----------
