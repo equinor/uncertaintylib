@@ -166,6 +166,10 @@ def component_uncertainty_from_norsok_I106(composition_mole_percent: Dict[str, f
     component molar mass. Molar masses are automatically retrieved from GERG-2008 
     reference values. NORSOK I-106 only provides component uncertainty down to 0.5 mol%. 
     This function uses the same uncertainty value below 0.5 mol% to handle low concentration components.
+
+    Note: This method do not take into account increased uncertainty for heavier components, and therefore tend to 
+    underestimate compositional uncertainties for rich natural gases. The higher the molar mass of a component,
+    the lower the uncertainty according to this method, while in reality the opposite is often the case. 
     
     Parameters
     ----------
@@ -223,7 +227,7 @@ def component_uncertainty_from_norsok_I106(composition_mole_percent: Dict[str, f
     
     References
     ----------
-    NORSOK standard I-106: "Fiscal measurement systems for hydrocarbon gas"
+    NORSOK standard I-106:2014: "Fiscal metering systems for hydrocarbon liquid and gas"
     """
     # All GERG-2008 components are allowed
     allowed_components = list(GERG_2008_MOLAR_MASSES.keys())
@@ -291,7 +295,7 @@ def component_uncertainty_from_haagenvik2024(
     regressions fitted to parallel test data from the K-lab facility.
     
     **Important**: This method should only be applied for gas compositions with 
-    significant methane content (>60 mol%).
+    significant methane content (minimum 60 mol%).
     
     Parameters
     ----------

@@ -63,7 +63,7 @@ Another example, [Example 06](https://github.com/equinor/uncertaintylib/blob/mai
 - **Gas Composition Uncertainty** (`gas_composition`): Three methods for estimating GC analysis uncertainties:
   - ASTM D1945 (reproducibility method for pipeline quality gas)
   - NORSOK I-106 (molar mass ratio method)
-  - Hagenvik 2024 (empirical power law from parallel test data)
+  - Hagenvik 2024 (empirical power law from parallel gas samples)
 
 See the [uncertainty_models documentation](uncertaintylib/uncertainty_models/README.md) for detailed guidance on method selection and [Example 09](examples/09%20-%20Compositional%20uncertainties) for practical comparison.
 
