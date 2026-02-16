@@ -56,6 +56,17 @@ print(results)
 
 Another example, [Example 06](https://github.com/equinor/uncertaintylib/blob/main/examples/example_06/example_06.ipynb), demonstrates uncertainty calculations for a natural gas metering station, demonstrating usage of many of the functions available in this library. 
 
+## Uncertainty Models
+
+`uncertaintylib.uncertainty_models` provides specialized uncertainty estimation methods for specific measurement types:
+
+- **Gas Composition Uncertainty** (`gas_composition`): Three methods for estimating GC analysis uncertainties:
+  - ASTM D1945 (reproducibility method for pipeline quality gas)
+  - NORSOK I-106 (molar mass ratio method)
+  - Hagenvik 2024 (empirical power law from parallel test data)
+
+See the [uncertainty_models documentation](uncertaintylib/uncertainty_models/README.md) for detailed guidance on method selection and [Example 09](examples/09%20-%20Compositional%20uncertainties) for practical comparison.
+
 ## Plotting Functionalities
 
 `uncertaintylib` includes plotting utilities based on matplotlib, available in `uncertaintylib.plot_functions`. These functions help visualize uncertainty propagation and contributions:

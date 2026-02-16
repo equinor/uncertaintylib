@@ -55,9 +55,10 @@ Demonstrates **parallel processing for Monte Carlo simulations** to reduce compu
 ## 09 - Compositional uncertainties
 Demonstrates **uncertainty estimation for gas composition** using different methods from standards and scientific literature, and shows how compositional uncertainties propagate to calculated gas density.
 - Compares three compositional uncertainty estimation methods:
-  - **ASTM D1945**: Standard reproducibility values
+  - **ASTM D1945**: Standard reproducibility values (for pipeline quality gas)
   - **NORSOK I-106**: Molar mass-based uncertainty estimation
   - **Hagenvik et al. (2024)**: Empirical power law method from K-lab parallel tests
+- **Reveals significant differences** between methods, especially for rich gases with heavy hydrocarbons
 - Uses **GERG-2008 equation of state** (via pvtlib) to calculate gas density
 - Analyzes two gas compositions: rich gas (high C2+ content) and lean gas (high methane)
 - Isolates compositional effects by setting pressure and temperature uncertainties to zero

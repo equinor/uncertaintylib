@@ -82,12 +82,12 @@ def test_norsok_i106_nfogm_reference():
     assert abs(total_composition - 100.0) < 1e-10, "Composition should be normalized to 100%"
     
     print("\nNORSOK I-106 Test Results:")
-    print("="*100)
-    print(f"{'Comp':<6} {'Conc':<8} {'Expected':<12} {'Calc':<12} {'Err%':<8} {'Status':<8} "
-          f"{'Expected':<12} {'Calc':<12} {'Err%':<8} {'Status'}")
-    print(f"{'':6} {'mol%':<8} {'U(k=2)':<12} {'U(k=2)':<12} {'abs':<8} {'abs':<8} "
-          f"{'U%(k=2)':<12} {'U%(k=2)':<12} {'rel':<8} {'rel'}")
-    print("-"*100)
+    print("="*110)
+    print(f"{'Comp':<6} {'Conc':<8} {'Expected':<12} {'Calc':<12} {'Error':<10} {'Status':<8} "
+          f"{'Expected':<12} {'Calc':<12} {'Error':<10} {'Status'}")
+    print(f"{'':6} {'mol%':<8} {'U(k=2)':<12} {'U(k=2)':<12} {'mol%':<10} {'abs':<8} "
+          f"{'U%(k=2)':<12} {'U%(k=2)':<12} {'%':<10} {'rel'}")
+    print("-"*110)
     
     # Check each component's expanded uncertainty (k=2) - both absolute and relative
     all_passed = True
@@ -104,35 +104,25 @@ def test_norsok_i106_nfogm_reference():
             calculated_relative_unc = 0.0
         expected_relative_unc = expected_relative_uncertainty[component]
         
-        # Calculate errors for absolute uncertainty
-        if expected_expanded_unc == 0.0:
-            abs_error = 0.0 if abs(calculated_expanded_unc) < 1e-4 else float('inf')
-            abs_status = "PASS" if abs(calculated_expanded_unc) < 1e-4 else "FAIL"
-        else:
-            abs_error = abs(calculated_expanded_unc - expected_expanded_unc) / expected_expanded_unc
-            # Allow 5% relative tolerance due to rounding in NFOGM app
-            abs_status = "PASS" if abs_error < 0.05 else "FAIL"
+        # Calculate absolute errors
+        abs_error = abs(calculated_expanded_unc - expected_expanded_unc)
+        rel_error = abs(calculated_relative_unc - expected_relative_unc)
         
-        # Calculate errors for relative uncertainty
-        if expected_relative_unc == 0.0:
-            rel_error = 0.0 if abs(calculated_relative_unc) < 1e-4 else float('inf')
-            rel_status = "PASS" if abs(calculated_relative_unc) < 1e-4 else "FAIL"
-        else:
-            rel_error = abs(calculated_relative_unc - expected_relative_unc) / expected_relative_unc
-            # Allow 5% relative tolerance
-            rel_status = "PASS" if rel_error < 0.05 else "FAIL"
+        # Tolerance: 0.01 mol% for absolute uncertainty, 0.5% for relative uncertainty
+        abs_status = "PASS" if abs_error < 0.01 else "FAIL"
+        rel_status = "PASS" if rel_error < 0.5 else "FAIL"
         
         if abs_status == "FAIL" or rel_status == "FAIL":
             all_passed = False
         
         print(f"{component:<6} {component_conc:<8.2f} {expected_expanded_unc:<12.4f} "
-              f"{calculated_expanded_unc:<12.4f} {abs_error*100:<8.2f} {abs_status:<8} "
+              f"{calculated_expanded_unc:<12.4f} {abs_error:<10.4f} {abs_status:<8} "
               f"{expected_relative_unc:<12.2f} {calculated_relative_unc:<12.2f} "
-              f"{rel_error*100:<8.2f} {rel_status}")
+              f"{rel_error:<10.2f} {rel_status}")
     
-    print("-"*100)
+    print("-"*110)
     print(f"Overall: {'ALL TESTS PASSED' if all_passed else 'SOME TESTS FAILED'}")
-    print("="*100)
+    print("="*110)
     
     assert all_passed, "Some component uncertainties did not match NFOGM reference within tolerance"
 
@@ -192,12 +182,12 @@ def test_astm_d1945_nfogm_reference():
     assert abs(total_composition - 100.0) < 1e-10, "Composition should be normalized to 100%"
     
     print("\nASTM D1945 Test Results:")
-    print("="*100)
-    print(f"{'Comp':<6} {'Conc':<8} {'Expected':<12} {'Calc':<12} {'Err%':<8} {'Status':<8} "
-          f"{'Expected':<12} {'Calc':<12} {'Err%':<8} {'Status'}")
-    print(f"{'':6} {'mol%':<8} {'U(k=2)':<12} {'U(k=2)':<12} {'abs':<8} {'abs':<8} "
-          f"{'U%(k=2)':<12} {'U%(k=2)':<12} {'rel':<8} {'rel'}")
-    print("-"*100)
+    print("="*110)
+    print(f"{'Comp':<6} {'Conc':<8} {'Expected':<12} {'Calc':<12} {'Error':<10} {'Status':<8} "
+          f"{'Expected':<12} {'Calc':<12} {'Error':<10} {'Status'}")
+    print(f"{'':6} {'mol%':<8} {'U(k=2)':<12} {'U(k=2)':<12} {'mol%':<10} {'abs':<8} "
+          f"{'U%(k=2)':<12} {'U%(k=2)':<12} {'%':<10} {'rel'}")
+    print("-"*110)
     
     # Check each component's expanded uncertainty (k=2) - both absolute and relative
     all_passed = True
@@ -214,39 +204,237 @@ def test_astm_d1945_nfogm_reference():
             calculated_relative_unc = 0.0
         expected_relative_unc = expected_relative_uncertainty[component]
         
-        # Calculate errors for absolute uncertainty
-        if expected_expanded_unc == 0.0:
-            abs_error = 0.0 if abs(calculated_expanded_unc) < 1e-4 else float('inf')
-            abs_status = "PASS" if abs(calculated_expanded_unc) < 1e-4 else "FAIL"
-        else:
-            abs_error = abs(calculated_expanded_unc - expected_expanded_unc) / expected_expanded_unc
-            # Allow 5% relative tolerance due to rounding in NFOGM app
-            abs_status = "PASS" if abs_error < 0.05 else "FAIL"
+        # Calculate absolute errors
+        abs_error = abs(calculated_expanded_unc - expected_expanded_unc)
+        rel_error = abs(calculated_relative_unc - expected_relative_unc)
         
-        # Calculate errors for relative uncertainty
-        if expected_relative_unc == 0.0:
-            rel_error = 0.0 if abs(calculated_relative_unc) < 1e-4 else float('inf')
-            rel_status = "PASS" if abs(calculated_relative_unc) < 1e-4 else "FAIL"
-        else:
-            rel_error = abs(calculated_relative_unc - expected_relative_unc) / expected_relative_unc
-            # Allow 5% relative tolerance
-            rel_status = "PASS" if rel_error < 0.05 else "FAIL"
+        # Tolerance: 0.01 mol% for absolute uncertainty, 0.5% for relative uncertainty
+        abs_status = "PASS" if abs_error < 0.01 else "FAIL"
+        rel_status = "PASS" if rel_error < 0.5 else "FAIL"
         
         if abs_status == "FAIL" or rel_status == "FAIL":
             all_passed = False
         
         print(f"{component:<6} {component_conc:<8.2f} {expected_expanded_unc:<12.4f} "
-              f"{calculated_expanded_unc:<12.4f} {abs_error*100:<8.2f} {abs_status:<8} "
+              f"{calculated_expanded_unc:<12.4f} {abs_error:<10.4f} {abs_status:<8} "
               f"{expected_relative_unc:<12.2f} {calculated_relative_unc:<12.2f} "
-              f"{rel_error*100:<8.2f} {rel_status}")
+              f"{rel_error:<10.2f} {rel_status}")
     
-    print("-"*100)
+    print("-"*110)
     print(f"Overall: {'ALL TESTS PASSED' if all_passed else 'SOME TESTS FAILED'}")
-    print("="*100)
+    print("="*110)
     
     assert all_passed, "Some component uncertainties did not match NFOGM reference within tolerance"
+
+
+def test_hagenvik2024_reference():
+    """
+    Test Hagenvik 2024 method against calculated reference data.
+    
+    This test is based on calculations from the Hagenvik 2024 publication,
+    not verified against NFOGM app as this method is not available there.
+    The uncertainties are expanded uncertainties at 95% confidence level (k=2).
+    """
+    # Test composition (mole percent)
+    composition = {
+        'N2': 1.0,
+        'CO2': 2.0,
+        'C1': 85.0,
+        'C2': 5.0,
+        'C3': 3.0,
+        'iC4': 1.0,
+        'nC4': 1.0,
+        'iC5': 0.5,
+        'nC5': 0.5,
+        'nC6': 1.0
+    }
+    
+    # Expected expanded uncertainties (k=2) from calculation (mol%)
+    expected_expanded_uncertainty = {
+        'N2': 0.0680,
+        'CO2': 0.0371,
+        'C1': 0.0000,
+        'C2': 0.0678,
+        'C3': 0.1451,
+        'iC4': 0.0360,
+        'nC4': 0.0540,
+        'iC5': 0.0245,
+        'nC5': 0.0332,
+        'nC6': 0.2060
+    }
+    
+    # Expected relative uncertainties (k=2) calculated as (U/concentration)*100
+    expected_relative_uncertainty = {
+        'N2': 6.80,
+        'CO2': 1.855,
+        'C1': 0.000,
+        'C2': 1.356,
+        'C3': 4.837,
+        'iC4': 3.60,
+        'nC4': 5.40,
+        'iC5': 4.90,
+        'nC5': 6.64,
+        'nC6': 20.60
+    }
+    
+    # Calculate uncertainties using Hagenvik 2024 method
+    result = gas_composition.component_uncertainty_from_haagenvik2024(composition)
+    
+    # Check that composition is normalized to 100%
+    total_composition = sum(result['mean'].values())
+    assert abs(total_composition - 100.0) < 1e-10, "Composition should be normalized to 100%"
+    
+    print("\nHagenvik 2024 Test Results:")
+    print("="*110)
+    print(f"{'Comp':<6} {'Conc':<8} {'Expected':<12} {'Calc':<12} {'Error':<10} {'Status':<8} "
+          f"{'Expected':<12} {'Calc':<12} {'Error':<10} {'Status'}")
+    print(f"{'':6} {'mol%':<8} {'U(k=2)':<12} {'U(k=2)':<12} {'mol%':<10} {'abs':<8} "
+          f"{'U%(k=2)':<12} {'U%(k=2)':<12} {'%':<10} {'rel'}")
+    print("-"*110)
+    
+    # Check each component's expanded uncertainty (k=2) - both absolute and relative
+    all_passed = True
+    for component in expected_expanded_uncertainty.keys():
+        calculated_standard_unc = result['standard_uncertainty'][component]
+        calculated_expanded_unc = calculated_standard_unc * 2  # Convert k=1 to k=2
+        expected_expanded_unc = expected_expanded_uncertainty[component]
+        
+        # Calculate relative uncertainties (as percentage of concentration)
+        component_conc = result['mean'][component]
+        if component_conc > 0:
+            calculated_relative_unc = (calculated_expanded_unc / component_conc) * 100
+        else:
+            calculated_relative_unc = 0.0
+        expected_relative_unc = expected_relative_uncertainty[component]
+        
+        # Calculate absolute errors
+        abs_error = abs(calculated_expanded_unc - expected_expanded_unc)
+        rel_error = abs(calculated_relative_unc - expected_relative_unc)
+        
+        # Tolerance: 0.01 mol% for absolute uncertainty, 0.5% for relative uncertainty
+        abs_status = "PASS" if abs_error < 0.01 else "FAIL"
+        rel_status = "PASS" if rel_error < 0.5 else "FAIL"
+        
+        if abs_status == "FAIL" or rel_status == "FAIL":
+            all_passed = False
+        
+        print(f"{component:<6} {component_conc:<8.2f} {expected_expanded_unc:<12.4f} "
+              f"{calculated_expanded_unc:<12.4f} {abs_error:<10.4f} {abs_status:<8} "
+              f"{expected_relative_unc:<12.2f} {calculated_relative_unc:<12.2f} "
+              f"{rel_error:<10.2f} {rel_status}")
+    
+    print("-"*110)
+    print(f"Overall: {'ALL TESTS PASSED' if all_passed else 'SOME TESTS FAILED'}")
+    print("="*110)
+    
+    assert all_passed, "Some component uncertainties did not match reference within tolerance"
+
+
+def test_hagenvik2024_reference_case2():
+    """
+    Test Hagenvik 2024 method against calculated reference data (case 2).
+    
+    This test is based on calculations from the Hagenvik 2024 publication,
+    not verified against NFOGM app as this method is not available there.
+    The uncertainties are expanded uncertainties at 95% confidence level (k=2).
+    """
+    # Test composition (mole percent)
+    composition = {
+        'N2': 3.0,
+        'CO2': 4.0,
+        'C1': 87.0,
+        'C2': 2.0,
+        'C3': 1.0,
+        'iC4': 1.0,
+        'nC4': 1.0,
+        'iC5': 0.25,
+        'nC5': 0.25,
+        'nC6': 0.5
+    }
+    
+    # Expected expanded uncertainties (k=2) from calculation (mol%)
+    expected_expanded_uncertainty = {
+        'N2': 0.2051,
+        'CO2': 0.0530,
+        'C1': 0.0000,
+        'C2': 0.0756,
+        'C3': 0.0500,
+        'iC4': 0.0360,
+        'nC4': 0.0540,
+        'iC5': 0.0188,
+        'nC5': 0.0240,
+        'nC6': 0.1283
+    }
+    
+    # Expected relative uncertainties (k=2) calculated as (U/concentration)*100
+    expected_relative_uncertainty = {
+        'N2': 6.837,
+        'CO2': 1.325,
+        'C1': 0.000,
+        'C2': 3.78,
+        'C3': 5.00,
+        'iC4': 3.60,
+        'nC4': 5.40,
+        'iC5': 7.52,
+        'nC5': 9.60,
+        'nC6': 25.66
+    }
+    
+    # Calculate uncertainties using Hagenvik 2024 method
+    result = gas_composition.component_uncertainty_from_haagenvik2024(composition)
+    
+    # Check that composition is normalized to 100%
+    total_composition = sum(result['mean'].values())
+    assert abs(total_composition - 100.0) < 1e-10, "Composition should be normalized to 100%"
+    
+    print("\nHagenvik 2024 Test Results (Case 2):")
+    print("="*110)
+    print(f"{'Comp':<6} {'Conc':<8} {'Expected':<12} {'Calc':<12} {'Error':<10} {'Status':<8} "
+          f"{'Expected':<12} {'Calc':<12} {'Error':<10} {'Status'}")
+    print(f"{'':6} {'mol%':<8} {'U(k=2)':<12} {'U(k=2)':<12} {'mol%':<10} {'abs':<8} "
+          f"{'U%(k=2)':<12} {'U%(k=2)':<12} {'%':<10} {'rel'}")
+    print("-"*110)
+    
+    # Check each component's expanded uncertainty (k=2) - both absolute and relative
+    all_passed = True
+    for component in expected_expanded_uncertainty.keys():
+        calculated_standard_unc = result['standard_uncertainty'][component]
+        calculated_expanded_unc = calculated_standard_unc * 2  # Convert k=1 to k=2
+        expected_expanded_unc = expected_expanded_uncertainty[component]
+        
+        # Calculate relative uncertainties (as percentage of concentration)
+        component_conc = result['mean'][component]
+        if component_conc > 0:
+            calculated_relative_unc = (calculated_expanded_unc / component_conc) * 100
+        else:
+            calculated_relative_unc = 0.0
+        expected_relative_unc = expected_relative_uncertainty[component]
+        
+        # Calculate absolute errors
+        abs_error = abs(calculated_expanded_unc - expected_expanded_unc)
+        rel_error = abs(calculated_relative_unc - expected_relative_unc)
+        
+        # Tolerance: 0.01 mol% for absolute uncertainty, 0.5% for relative uncertainty
+        abs_status = "PASS" if abs_error < 0.01 else "FAIL"
+        rel_status = "PASS" if rel_error < 0.5 else "FAIL"
+        
+        if abs_status == "FAIL" or rel_status == "FAIL":
+            all_passed = False
+        
+        print(f"{component:<6} {component_conc:<8.2f} {expected_expanded_unc:<12.4f} "
+              f"{calculated_expanded_unc:<12.4f} {abs_error:<10.4f} {abs_status:<8} "
+              f"{expected_relative_unc:<12.2f} {calculated_relative_unc:<12.2f} "
+              f"{rel_error:<10.2f} {rel_status}")
+    
+    print("-"*110)
+    print(f"Overall: {'ALL TESTS PASSED' if all_passed else 'SOME TESTS FAILED'}")
+    print("="*110)
+    
+    assert all_passed, "Some component uncertainties did not match reference within tolerance"
 
 
 if __name__ == '__main__':
     test_norsok_i106_nfogm_reference()
     test_astm_d1945_nfogm_reference()
+    test_hagenvik2024_reference()
+    test_hagenvik2024_reference_case2()

@@ -9,6 +9,18 @@ The example compares three methods for estimating gas composition uncertainty:
 2. **NORSOK I-106** - Molar mass-based uncertainty estimation
 3. **Hagenvik et al. (2024)** - Empirical power law method from K-lab parallel tests
 
+### Why Method Choice Matters
+
+Different methods give significantly different results, especially for **rich natural gases**:
+
+- **ASTM D1945**: Based on pipeline quality gas (~38 MJ/m³). Tends to **underestimate** uncertainty for heavy components (C5+) in rich gases.
+- **NORSOK I-106**: Uses molar mass ratios. Better than ASTM for rich gases but still tends to **underestimate** C5+ uncertainty.
+- **Hagenvik 2024**: Based on actual parallel test data. Provides **more realistic estimates** for rich gases with significant heavy hydrocarbon content.
+
+For **lean pipeline gases**, ASTM and NORSOK may slightly overestimate uncertainty. For **rich gases** (condensate, wet gas), they significantly underestimate uncertainty in density and other mass-based properties.
+
+**This example demonstrates these differences** by comparing calculated density uncertainties for both lean and rich gas cases.
+
 ## Cases
 
 Two gas compositions are analyzed:
