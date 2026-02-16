@@ -208,11 +208,14 @@ def component_uncertainty_from_norsok_I106(composition_mole_percent: Dict[str, f
     - U_{x_i} is the expanded uncertainty (k=2) for component i (mol%)
     - M_{avg} is the average molar mass of the gas mixture (g/mol)
     - M_i is the molar mass of component i (g/mol)
-    - factor depends on the mole fraction:
-        - < 20 mol%: factor = 0.15
-        - 20 to 50 mol%: factor = 0.30
-        - > 50 mol%: factor = 0.60
+    - factor depends on the component's mass percent (not mole percent):
+        - < 20 mass%: factor = 0.15
+        - 20 to 50 mass%: factor = 0.30
+        - > 50 mass%: factor = 0.60
     
+    The input composition is provided in mole percent, which is then converted to 
+    mass percent to determine the appropriate factor. The calculated uncertainty 
+    is returned in mole percent.
     The standard uncertainty is calculated by dividing the expanded uncertainty 
     (k=2) by 2 to obtain the single standard deviation (k=1).
     
@@ -250,21 +253,36 @@ def component_uncertainty_from_norsok_I106(composition_mole_percent: Dict[str, f
         for comp in composition_normalized
     ]) / 100  # Divide by 100 because composition is in mol%
     
+    # Convert mole percent to mass percent for factor determination
+    # mass_i = mole_percent_i * M_i
+    total_mass = sum([
+        composition_normalized[comp] * GERG_2008_MOLAR_MASSES[comp]
+        for comp in composition_normalized
+    ])
+    
+    composition_mass_percent = {
+        comp: (composition_normalized[comp] * GERG_2008_MOLAR_MASSES[comp] / total_mass) * 100
+        for comp in composition_normalized
+    }
+    
     # Calculate standard uncertainties
     standard_uncertainty = {}
     
     for component, mole_percent in composition_normalized.items():
         component_molar_mass = GERG_2008_MOLAR_MASSES[component]
+        mass_percent = composition_mass_percent[component]
         
-        # Determine factor based on mole fraction
-        if mole_percent < 20:
+        # Determine factor based on MASS percent (not mole percent)
+        # According to NORSOK I-106, Table 4
+        if mass_percent < 20:
             factor = 0.15
-        elif mole_percent < 50:
+        elif mass_percent < 50:
             factor = 0.30
         else:
             factor = 0.60
         
         # Calculate expanded uncertainty (k=2) according to NORSOK I-106
+        # Uncertainty is given in mol%, not mass%
         expanded_uncertainty = factor * average_molar_mass / component_molar_mass
         
         # Convert from expanded uncertainty (k=2) to standard uncertainty (k=1)

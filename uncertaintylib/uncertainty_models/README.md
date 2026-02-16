@@ -42,10 +42,16 @@ component_uncertainty_from_norsok_I106(composition_mole_percent)
 
 $$U_{x_i} = \text{factor} \times \frac{M_{\text{avg}}}{M_i}$$
 
-where the factor depends on concentration:
-- 0.5 - 20 mol%: factor = 0.15 (the function also uses this value below 0.5 mol%)
-- 20 to 50 mol%: factor = 0.30
-- 50 - 100 mol%: factor = 0.60
+where:
+- U_{x_i} is the expanded uncertainty (k=2) for component i in mol%
+- M_{avg} is the average molar mass of the gas mixture (g/mol)
+- M_i is the molar mass of component i (g/mol)
+- factor depends on the component's **mass percent** (not mole percent):
+  - 0.5 to 20 mass%: factor = 0.15 (the function also uses this value below 0.5 mass%)
+  - 20 to 50 mass%: factor = 0.30
+  - 50 to 100 mass%: factor = 0.60
+
+The input composition is provided in mole percent, which is converted to mass percent to determine the factor. The calculated uncertainty is returned in mole percent.
 
 **Applicability:** Designed for North Sea fiscal metering applications. 
 
