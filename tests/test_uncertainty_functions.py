@@ -150,7 +150,7 @@ def test_calculate_uncertainty_03():
 
 
 def _orifice_calculation(inputs):
-    # Used for testing uncertainty calculation for orifice against data from NGOFM uncertainty app    
+    # Used for testing uncertainty calculation for orifice against data from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool    
     from pvtlib.metering.differential_pressure_flowmeters import _calculate_flow_DP_meter
 
     outputs = _calculate_flow_DP_meter(
@@ -167,7 +167,7 @@ def _orifice_calculation(inputs):
 
 def test_calculate_uncertainty_04():
     # Test case for orifice calculation with standard uncertainties
-    # The case is retrieved from the NFOGM gasmetapp uncertainty web application https://gasmetapp.web.norce.cloud/flowmeas (2025)
+    # The case is retrieved from the NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool https://gasmetapp.web.norce.cloud/flowmeas (2025)
     # Uses the default setup with single meter, orifice, single pressure and temperature, single densitometer (has temperature). Using default values and input uncertainties. 
     
     data = {
@@ -192,7 +192,7 @@ def test_calculate_uncertainty_04():
     # Calculate the uncertainty
     result = uncertainty_functions.calculate_uncertainty(data,_orifice_calculation)
 
-    # The value given by the NFOGM gasmetapp is 0.546%. Assert the test results with 2 decimals
+    # The value given by the NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool is 0.546%. Assert the test results with 2 decimals
     assert round(result['U_perc']['MassFlow'],2) == 0.55, 'Error in orifice mass flow rate standard uncertainty'
 
 
@@ -255,7 +255,7 @@ def test_calculate_uncertainty_05():
     '''
     Calculates relative expanded uncertainty in mass flow rate calculated from an ultrasonic flowmeter, composition from a GC and pressure and temperature measurements
 
-    The test is based on example from NFOGM GasMet app (https://gasmetapp.web.norce.cloud/)
+    The test is based on example from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (https://gasmetapp.web.norce.cloud/)
     using a single ultrasonic flowmeter with online GC, single P&T.
     Compositional uncertainties are set to NORSOK I-106
     '''
@@ -336,7 +336,7 @@ def test_calculate_uncertainty_05():
     if True:
         print(comparison)
 
-    # Target uncertainties from NFOGM GasMetApp
+    # Target uncertainties from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool
     target_uncertainties = {
         'rho' : 0.534,
         'm/Z' : 0.432,

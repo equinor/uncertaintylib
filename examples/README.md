@@ -15,7 +15,7 @@ Performs uncertainty analysis for mass flow calculation using an orifice meter. 
 Demonstrates calculation of combined standard uncertaintyfor two cases, based on input uncertainties and sensitivity coefficients, and compares results against other sources.
 Divided into two parts:
 - **Part 1:** Performs analysis for an orifice meter and compares the results with those from example 03. Sensitivity coefficients are provided. 
-- **Part 2:** Performs analysis for an Ultrasonic Flowmeter (USM) and compares the results against a reference case from the NGOFM GasMet uncertainty application. In this case, sensitivity coefficients are not provided, in which the code will assume sensitivity coefficients to be 1. 
+- **Part 2:** Performs analysis for an Ultrasonic Flowmeter (USM) and compares the results against a reference case from the NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool. In this case, sensitivity coefficients are not provided, in which the code will assume sensitivity coefficients to be 1. 
 
 ## 05 - Gas composition molar mass
 Analyzes uncertainty in the calculation of total molar mass from gas composition using AGA8 molar masses. Includes sensitivity analysis and Monte Carlo simulation.
@@ -51,6 +51,20 @@ Demonstrates **parallel processing for Monte Carlo simulations** to reduce compu
 - Demonstrates how to achieve 4x-8x speedup on multi-core processors
 - Shows when parallel processing is beneficial (large N > 100,000 simulations)
 - Input data loaded from CSV file (same as Example 03)
+
+## 09 - Compositional uncertainties
+Demonstrates **uncertainty estimation for gas composition** using different methods from standards and scientific literature, and shows how compositional uncertainties propagate to calculated gas density.
+- Compares three compositional uncertainty estimation methods:
+  - **ASTM D1945 (1998)**: Standard reproducibility values (applicable for pipeline quality gas)
+  - **NORSOK I-106 (2014)**: Molar mass-based uncertainty estimation
+  - **Haagenvik et al. (2024)**: Empirical power law method from K-lab parallel sample data
+- **Reveals significant differences** between methods, especially for rich gases with heavy hydrocarbons
+- Uses **GERG-2008 equation of state** (via pvtlib) to calculate gas density
+- Analyzes two gas compositions: rich gas (high C6+ content) and lean gas (no C6+)
+- Isolates compositional effects by setting pressure and temperature uncertainties to zero
+- Identifies top contributors to density uncertainty
+- Demonstrates integration of `uncertaintylib.uncertainty_models` with core uncertainty functions
+- **Input compositions defined directly in the script**
 
 ---
 Each example uses the `uncertaintylib` library to perform uncertainty analysis and visualize results. Input parameters are either loaded from a CSV file in the same folder or, for example 02, defined directly in the code. Examples 06 and 07 are provided as Jupyter Notebooks for interactive exploration and include both analytical and Monte Carlo methods for uncertainty propagation. Example 08 demonstrates how to use parallel processing to accelerate Monte Carlo simulations for computationally intensive uncertainty analyses.

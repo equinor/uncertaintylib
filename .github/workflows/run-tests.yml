@@ -2,9 +2,11 @@ name: Run Tests
 
 on:
   push:
-    branches: [ "main", "add-uncertainty-functions" ]
+    branches: [ "main"]
   pull_request:
-    branches: [ "main", "add-uncertainty-functions" ]
+    branches: [ "main"]
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight UTC
 
 permissions:
   contents: read
