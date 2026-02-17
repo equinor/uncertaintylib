@@ -34,7 +34,7 @@ Part 1: Orifice Meter
 Part 2: Ultrasonic Flowmeter (USM)
     - Performs analysis for an ultrasonic flowmeter (USM) with single P&T and GC.
     - Calculates combined standard uncertainty using hardcoded input uncertainties.
-    - Compares the result against a reference case from the NGOFM GasMet uncertainty application.
+    - Compares the result against a reference case from the NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool.
 
 Created on Thu May 23 11:14:03 2024
 @author: CHHAG
@@ -93,4 +93,4 @@ u2 = {
 U2 = uncertainty_functions.combined_standard_uncertainty(u2) * 2
 print('\nUltrasonic Flowmeter (USM): Based on combined_standard_uncertainty function (k=2)')
 print(round(U2, 5))
-print('Reference from NFOGM GasMet tool: 0.647')
+print('Reference from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool: 0.647')

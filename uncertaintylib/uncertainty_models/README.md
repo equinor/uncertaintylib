@@ -112,7 +112,7 @@ where *a* and *b* are empirically determined coefficients for each component. Me
    - Empirical power law models from K-lab parallel tests
    - Available at: https://nfogm.no/wp-content/uploads/2025/08/1-Single-Phase-1-Exploring-the-Relationship-between-Speed-of-Sound-Density-and-Isentropic-Exponent-Christian-Hagenvik_Equinor.pdf
 
-4. **NFOGM Gasmet Tool** - Fiscal Gas Metering Station Uncertainty App
+4. **NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) Tool**
    - Reference implementation: https://gasmetapp.web.norce.cloud/
 
 ---

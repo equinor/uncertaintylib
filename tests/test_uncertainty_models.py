@@ -48,7 +48,7 @@ def test_norsok_i106_nfogm_reference_case1():
         'CO2': 1.0
     }
     
-    # Expected expanded uncertainties (k=2) from NFOGM app (mol%)
+    # Expected expanded uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (mol%)
     expected_expanded_uncertainty = {
         'C1': 0.724,
         'C2': 0.0966,
@@ -61,7 +61,7 @@ def test_norsok_i106_nfogm_reference_case1():
         'CO2': 0.066
     }
     
-    # Expected relative uncertainties (k=2) from NFOGM app (%)
+    # Expected relative uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (%)
     expected_relative_uncertainty = {
         'C1': 0.839,
         'C2': 1.61,
@@ -144,7 +144,7 @@ def test_norsok_i106_nfogm_reference_case2():
         'iC4': 25.0
     }
     
-    # Expected expanded uncertainties (k=2) from NFOGM app (mol%)
+    # Expected expanded uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (mol%)
     expected_expanded_uncertainty = {
         'C1': 0.347,
         'C2': 0.370,
@@ -152,7 +152,7 @@ def test_norsok_i106_nfogm_reference_case2():
         'iC4': 0.191
     }
     
-    # Expected relative uncertainties (k=2) from NFOGM app (%)
+    # Expected relative uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (%)
     expected_relative_uncertainty = {
         'C1': 1.39,
         'C2': 1.48,
@@ -219,7 +219,7 @@ def test_norsok_i106_nfogm_reference_case3():
     
     Equal 10% mole percent composition across C1-C8 to test mass-based factor 
     determination for heavier components. Composition and expected uncertainties 
-    from NFOGM Fiscal Gas Metering Station Uncertainty app. The uncertainties 
+    from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool. The uncertainties 
     are expanded uncertainties at 95% confidence level (k=2).
     """
     # Test composition (mole percent) - equal 10% for all components
@@ -236,7 +236,7 @@ def test_norsok_i106_nfogm_reference_case3():
         'nC8': 10.0
     }
     
-    # Expected expanded uncertainties (k=2) from NFOGM app (mol%)
+    # Expected expanded uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (mol%)
     expected_expanded_uncertainty = {
         'C1': 0.609,
         'C2': 0.325,
@@ -250,7 +250,7 @@ def test_norsok_i106_nfogm_reference_case3():
         'nC8': 0.0855
     }
     
-    # Expected relative uncertainties (k=2) from NFOGM app (%)
+    # Expected relative uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (%)
     expected_relative_uncertainty = {
         'C1': 6.09,
         'C2': 3.25,
@@ -338,7 +338,7 @@ def test_astm_d1945_nfogm_reference_case1():
         'CO2': 1.1
     }
     
-    # Expected expanded uncertainties (k=2) from NFOGM app (mol%)
+    # Expected expanded uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (mol%)
     expected_expanded_uncertainty = {
         'C1': 0.15,
         'C2': 0.12,
@@ -351,7 +351,7 @@ def test_astm_d1945_nfogm_reference_case1():
         'CO2': 0.1
     }
     
-    # Expected relative uncertainties (k=2) from NFOGM app (%)
+    # Expected relative uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (%)
     expected_relative_uncertainty = {
         'C1': 0.174,
         'C2': 2.0,
@@ -435,7 +435,7 @@ def test_astm_d1945_nfogm_reference_case2():
         'nC4': 5.0
     }
     
-    # Expected expanded uncertainties (k=2) from NFOGM app (mol%)
+    # Expected expanded uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (mol%)
     expected_expanded_uncertainty = {
         'C1': 0.15,
         'C2': 0.15,
@@ -444,7 +444,7 @@ def test_astm_d1945_nfogm_reference_case2():
         'nC4': 0.12
     }
     
-    # Expected relative uncertainties (k=2) from NFOGM app (%)
+    # Expected relative uncertainties (k=2) from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (%)
     expected_relative_uncertainty = {
         'C1': 0.25,
         'C2': 0.75,
@@ -511,7 +511,7 @@ def test_hagenvik2024_reference_case1():
     Test Hagenvik 2024 method against calculated reference data.
     
     This test is based on calculations from the Hagenvik 2024 publication,
-    not verified against NFOGM app as this method is not available there.
+    not verified against NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool as this method is not available there.
     The uncertainties are expanded uncertainties at 95% confidence level (k=2).
     """
     # Test composition (mole percent)
@@ -614,7 +614,7 @@ def test_hagenvik2024_reference_case2():
     Test Hagenvik 2024 method against calculated reference data (case 2).
     
     This test is based on calculations from the Hagenvik 2024 publication,
-    not verified against NFOGM app as this method is not available there.
+    not verified against NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool as this method is not available there.
     The uncertainties are expanded uncertainties at 95% confidence level (k=2).
     """
     # Test composition (mole percent)
@@ -713,10 +713,10 @@ def test_hagenvik2024_reference_case2():
 
 
 if __name__ == '__main__':
-    test_norsok_i106_nfogm_reference()
+    test_norsok_i106_nfogm_reference_case1()
     test_norsok_i106_nfogm_reference_case2()
     test_norsok_i106_nfogm_reference_case3()
-    test_astm_d1945_nfogm_reference()
+    test_astm_d1945_nfogm_reference_case1()
     test_astm_d1945_nfogm_reference_case2()
-    test_hagenvik2024_reference()
+    test_hagenvik2024_reference_case1()
     test_hagenvik2024_reference_case2()

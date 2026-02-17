@@ -15,7 +15,7 @@ Performs uncertainty analysis for mass flow calculation using an orifice meter. 
 Demonstrates calculation of combined standard uncertaintyfor two cases, based on input uncertainties and sensitivity coefficients, and compares results against other sources.
 Divided into two parts:
 - **Part 1:** Performs analysis for an orifice meter and compares the results with those from example 03. Sensitivity coefficients are provided. 
-- **Part 2:** Performs analysis for an Ultrasonic Flowmeter (USM) and compares the results against a reference case from the NGOFM GasMet uncertainty application. In this case, sensitivity coefficients are not provided, in which the code will assume sensitivity coefficients to be 1. 
+- **Part 2:** Performs analysis for an Ultrasonic Flowmeter (USM) and compares the results against a reference case from the NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool. In this case, sensitivity coefficients are not provided, in which the code will assume sensitivity coefficients to be 1. 
 
 ## 05 - Gas composition molar mass
 Analyzes uncertainty in the calculation of total molar mass from gas composition using AGA8 molar masses. Includes sensitivity analysis and Monte Carlo simulation.

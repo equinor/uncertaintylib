@@ -65,7 +65,7 @@ def component_uncertainty_from_ASTM_D1945(composition_mole_percent: Dict[str, fl
     This function calculates component uncertainty according to ASTM D1945 
     "Reproducibility" (chapter 10.1.2). The uncertainty values are based on 
     95% confidence level (k=2) and given in absolute terms (mol%). The interpretation 
-    follows the NFOGM gasmet uncertainty tool (https://gasmetapp.web.norce.cloud/).
+    follows the NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool (https://gasmetapp.web.norce.cloud/).
     
     Parameters
     ----------
