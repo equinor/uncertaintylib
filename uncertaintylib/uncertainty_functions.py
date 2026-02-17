@@ -33,7 +33,7 @@ from typing import Callable, Dict, Any, Optional
 def calculate_uncertainty(indata: dict, function: Callable[[dict], dict]) -> dict:
     """
     Analyze the uncertainty of output parameters for a given function and input data.
-    The method used is the method described as "Determining combined standard uncertainty" for "Uncorrelated input quentities" 
+    The method used is the method described as "Determining combined standard uncertainty" for "Uncorrelated input quantities" 
     given in chapter 5 in "JCGM 100:2008 Evaluation of measurement data — Guide to the expression of uncertainty in measurement"
     The equation in use is equation (10) in chapter 5.1.2. 
 
@@ -81,7 +81,7 @@ def calculate_uncertainty(indata: dict, function: Callable[[dict], dict]) -> dic
     # baseline_results = function(indata['mean']) #Calculate baseline results individually. However, these are also calculated when calculating sensitivity coefficients. Have therefore commented out this line, to improve calculation speed
     
     #Calculate absolute and relative sensitivity coefficients.
-    #Baseline results are also calculated. That is the results by using the original input values (without pertubations)
+    #Baseline results are also calculated. That is the results by using the original input values (without perturbations)
     sensitivity_results = calculate_sensitivity_coefficients(indata, function)
     abs_sensitivity_coefficients = sensitivity_results['absolute_sensitivity_coefficients']
     rel_sensitivity_coefficients = sensitivity_results['relative_sensitivity_coefficients']
@@ -99,7 +99,7 @@ def calculate_uncertainty(indata: dict, function: Callable[[dict], dict]) -> dic
     #Dictionary of Relative Expanded Uncertainty (95% confidence level)(U, k=2) for each output parameter, in %
     U_perc = {}
     
-    #Dictionary containing the percentage contribution of each input variabel to the uncertainty in an output variabel
+    #Dictionary containing the percentage contribution of each input variable to the uncertainty in an output variable
     #The contribution is calculated as the % in variance
     contribution = {}
     
@@ -144,7 +144,7 @@ def calculate_sensitivity_coefficients(indata: dict, function: Callable[[dict], 
     """
     Calculate the absolute and relative sensitivity coefficients for input parameters to a given function.
     
-    If an input parameter is set to distribution = 'none', the sensitivity coefficients will be 0 for this variabel. 
+    If an input parameter is set to distribution = 'none', the sensitivity coefficients will be 0 for this variable. 
     This will for example be the case for settings used as input to the function, where values can be 0,1,2 etc. 
     
     Parameters
@@ -202,7 +202,7 @@ def calculate_sensitivity_coefficients(indata: dict, function: Callable[[dict], 
                     indata['distribution'][input_var]='none'
             
             #Check if distribution is set to None. In that case, the sensitivity of that parameter is set to 0. 
-            #This is done to handle functions that uses settings as input (for example 0 and 1), and that would crash if these values are pertubated
+            #This is done to handle functions that uses settings as input (for example 0 and 1), and that would crash if these values are perturbed
             if 'distribution' in indata and indata['distribution'][input_var].lower()=='none':                
                 # Add both sensitivities to their respective dictionaries
                 abs_sensitivity_coefficients[input_var] = {key : 0.0 for key in original_output}
@@ -219,7 +219,7 @@ def calculate_sensitivity_coefficients(indata: dict, function: Callable[[dict], 
                 
                 input_dict_copy2[input_var] += perturbation
                 
-                #Calculate pertubated output
+                #Calculate perturbed output
                 perturbed_output = function(input_dict_copy2)
         
                 # Calculate the sensitivity coefficient for this input variable (as a scalar)
@@ -743,7 +743,7 @@ def compare_monte_carlo_to_conventional_uncertainty_calculation(MC_results: pd.D
         Dataframe containing comparison between relative uncertainty (k=2) from conventional uncertainty calculations and monte carlo.
 
     '''    
-    #Comare conventional uncertainty analysis to Monte Carlo results
+    #Compare conventional uncertainty analysis to Monte Carlo results
 
     # Calculate the percentage deviation of Monte Carlo results from the mean value
     MC_results_relative = calculate_percentage_deviation_from_mean(MC_results)

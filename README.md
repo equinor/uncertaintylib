@@ -1,6 +1,6 @@
 <img src="https://raw.githubusercontent.com/equinor/uncertaintylib/main/images/uncertaintylib_klab.png" alt="uncertaintylib logo" width="600"/>
 
-`uncertaintylib` is a Python library for estimating and propagating uncertainties in engineering and scientific calculations. It is designed to work with any Python function whose inputs and outputs are flat dictionaries.
+`uncertaintylib` is a Python library for estimating and propagating uncertainties in engineering and scientific calculations. The library is developed by Equinor K-lab Technology Test Center. It is designed to work with any Python function whose inputs and outputs are flat dictionaries.
 
 ## Key Principles
 
@@ -23,7 +23,7 @@ The main interface is through functions in `uncertaintylib.uncertainty_functions
 - The standard uncertainty can also be given in relative terms (%), using the 'standard_uncertainty_percent' key
 - If both 'standard_uncertainty' and 'standard_uncertainty_percent', the largest of the two will be used. This can be useful for variables where for example noise dominates the uncertainty in the lower region (such as zero stability of a coriolis massflow meter)
 - 'min' and 'max' are only used in Monte Carlo calculations, to address the issue of non-physical distributions (for example distribution of mole-% of a component going below 0)
-- 'distribution' is used mainly by Monte Carlo, but also in cases where some of the inputs are settings (for example 0 or 1), where you dont want to pertubate or calculate sensitivity coefficients for that spesific input variable. In this case 'distribution' can be set to 'none', which will ignore that parameter. 
+- 'distribution' is used mainly by Monte Carlo, but also in cases where some of the inputs are settings (for example 0 or 1), where you don't want to perturb or calculate sensitivity coefficients for that specific input variable. In this case 'distribution' can be set to 'none', which will ignore that parameter. 
 
 Example usage (standard uncertainty calculation):
 
