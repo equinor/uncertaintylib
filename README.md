@@ -81,6 +81,15 @@ All plots are generated using matplotlib and can be customized or saved using st
 - See the `examples/` folder for practical scripts demonstrating usage.
 - API documentation is available in the source code docstrings.
 
+## Running Tests
+
+Tests are located in the `tests/` folder and are run with [pytest](https://pytest.org). Two additional packages are required:
+
+```bash
+pip install pytest pvtlib
+pytest tests
+```
+
 ## License
 
 MIT License. See `LICENSE` for details.
