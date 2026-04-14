@@ -333,8 +333,7 @@ def test_calculate_uncertainty_05():
     )
 
     # Print comparison results
-    if True:
-        print(comparison)
+    print(comparison)
 
     # Target uncertainties from NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool
     target_uncertainties = {
