@@ -225,7 +225,7 @@ def plot_uncertainty_contribution(
     # Add a plot title with a subtitle
     if plot_title == '':
         ax.set_title(f'Contribution to Total Expanded Uncertainty in {property_id}', fontsize=16, y=1.0)
-    elif plot_title == None:
+    elif plot_title is None:
         #Dont include title if plot_title is set to None
         pass
     else:
