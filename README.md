@@ -5,7 +5,7 @@
 [![Tests](https://github.com/equinor/uncertaintylib/actions/workflows/run-tests.yml/badge.svg)](https://github.com/equinor/uncertaintylib/actions/workflows/run-tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`uncertaintylib` is a Python libraryfor estimating and propagating uncertainties in engineering and scientific calculations. The library is developed by Equinor K-lab Technology Test Center. It is designed to work with any Python function whose inputs and outputs are flat dictionaries.
+`uncertaintylib` is a Python library for estimating and propagating uncertainties in engineering and scientific calculations. The library is developed by Equinor K-lab Technology Test Center. It is designed to work with any Python function whose inputs and outputs are flat dictionaries.
 
 ## Key Principles
 
