@@ -305,37 +305,36 @@ def component_uncertainty_from_haagenvik2024(
     lower_uncertainty_limit: Optional[float] = None
 ) -> dict:
     """
-    Estimate gas composition uncertainty using the Hagenvik et al. (2024) method.
-    
-    This function estimates component uncertainty based on the empirical method 
-    described in "Exploring the Relationship between Speed of Sound, Density and 
-    Isentropic Exponent" (Hagenvik et al., 2024). The method uses power law 
-    regressions fitted to parallel test data from the K-lab facility.
-    
-    **Important**: This method should only be applied for gas compositions with 
-    significant methane content (minimum 60 mol%).
-    
+    Estimate component uncertainties from the Hagenvik et al. (2024) model.
+
+    The method applies empirical power-law regressions to each reported component
+    and returns the result in the standard uncertaintylib format. Input
+    compositions are internally normalized to 100 mol% before uncertainties are
+    calculated.
+
+    This model should only be used for gas compositions with substantial methane
+    content (minimum 60 mol%).
+
     Parameters
     ----------
     composition_mole_percent : dict
-        Gas composition as a dictionary with component names as keys and 
-        mole percentages as values. The composition does not need to be 
-        normalized to 100%. Supported components: N2, CO2, C1, C2, C3, 
+        Gas composition as a dictionary with component names as keys and
+        mole percentages as values. The input does not need to sum to 100; it is
+        normalized internally before use. Supported components: N2, CO2, C1, C2, C3,
         iC4, nC4, iC5, nC5, nC6, nC7, nC8, nC9, nC10.
         Example: {'C1': 85.0, 'C2': 10.0, 'N2': 5.0}
     lower_uncertainty_limit : float, optional
-        Optional lower limit for uncertainty estimates (mol%). If the calculated 
-        uncertainty for a component is below this limit, the limit value will be 
-        used instead. This prevents unrealistically low uncertainty estimates 
-        for components with very low concentrations. The choice should be based 
-        on expert judgment and knowledge of the measurement system. Default is None 
-        (no lower limit applied).
-    
+        Optional lower limit for standard uncertainty estimates (mol%). When
+        provided, it is applied only to non-zero, non-C1 components after the
+        power-law uncertainty has been calculated. It is not applied to methane
+        (C1), whose uncertainty is always set to 0.0, or to zero-concentration
+        components, which also remain at 0.0. Default is None.
+
     Returns
     -------
     dict
         A dictionary in standard uncertaintylib format with the following keys:
-        
+
         - 'mean' : dict
             Normalized mole percentages for each component.
         - 'standard_uncertainty' : dict
@@ -346,26 +345,32 @@ def component_uncertainty_from_haagenvik2024(
             Minimum allowable values for each component (0.0 mol%).
         - 'max' : dict
             Maximum allowable values for each component (100.0 mol%).
-    
+
     Notes
     -----
-    The uncertainty for each component (except C1) is estimated using a power law:
-    
+    For non-zero components other than methane, the standard uncertainty is
+    estimated from a component-specific power law:
+
     .. math::
         u_i = a \\times x_i^b
-    
-    where u_i is the standard uncertainty, x_i is the mole percentage of component i,
-    and a and b are fitted parameters from parallel test data.
-    
-    The uncertainty of methane (C1) is set to 0% to account for the normalization 
-    effect. Since methane typically has the highest concentration and the composition 
-    is normalized to 100%, the uncertainty in methane is implicitly influenced by 
-    the uncertainties in all other components.
-    
+
+    where :math:`u_i` is the standard uncertainty, :math:`x_i` is the normalized
+    mole percentage of component :math:`i`, and :math:`a` and :math:`b` are fitted
+    parameters from K-lab parallel test data.
+
+    Methane (C1) is intentionally assigned a standard uncertainty of 0.0. After
+    the composition is normalized to 100 mol%, the methane value is constrained by
+    the other reported components, so its uncertainty contribution is treated as
+    being represented through the normalization effect rather than a separate
+    methane regression.
+
+    Components reported as 0.0 mol% keep a standard uncertainty of 0.0, even when
+    ``lower_uncertainty_limit`` is provided.
+
     For heavy components (C6+), the same power law coefficients as C6 are used.
-    
+
     Power law coefficients (from K-lab parallel test data):
-    
+
     - N2: a=0.034, b=1.005
     - CO2: a=0.013, b=0.514
     - C2: a=0.041, b=-0.118
@@ -375,23 +380,17 @@ def component_uncertainty_from_haagenvik2024(
     - iC5: a=0.016, b=0.383
     - nC5: a=0.023, b=0.470
     - C6+: a=0.103, b=0.683
-    
+
     Examples
     --------
     >>> composition = {'C1': 85.0, 'C2': 8.0, 'C3': 4.0, 'N2': 3.0}
     >>> uncertainty_data = component_uncertainty_from_haagenvik2024(composition)
-    >>> print(uncertainty_data['standard_uncertainty']['C2'])
-    0.038
-    
-    >>> # With lower uncertainty limit
-    >>> uncertainty_data = component_uncertainty_from_haagenvik2024(
-    ...     composition, 
-    ...     lower_uncertainty_limit=0.01
-    ... )
-    
+    >>> uncertainty_data['standard_uncertainty']['C1']
+    0.0
+
     References
     ----------
-    Hagenvik, C., et al. (2024). "Exploring the Relationship between Speed of Sound, 
+    Hagenvik, C., et al. (2024). "Exploring the Relationship between Speed of Sound,
     Density and Isentropic Exponent." Presented at NFOGM 2024.
     https://nfogm.no/wp-content/uploads/2025/08/1-Single-Phase-1-Exploring-the-Relationship-between-Speed-of-Sound-Density-and-Isentropic-Exponent-Christian-Hagenvik_Equinor.pdf
     """
