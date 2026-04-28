@@ -450,9 +450,10 @@ def component_uncertainty_from_haagenvik2024(
         else:
             raise ValueError(f"Component '{component}' is not supported by this method.")
         
-        # Apply optional lower uncertainty limit
-        if lower_uncertainty_limit is not None and standard_uncertainty[component] < lower_uncertainty_limit:
-            standard_uncertainty[component] = lower_uncertainty_limit
+        # Apply optional lower uncertainty limit (not for C1 or zero-concentration components)
+        if lower_uncertainty_limit is not None and mole_percent > 0 and component != 'C1':
+            if standard_uncertainty[component] < lower_uncertainty_limit:
+                standard_uncertainty[component] = lower_uncertainty_limit
     
     # Prepare output in standard uncertaintylib format
     result = {
