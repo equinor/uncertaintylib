@@ -304,7 +304,6 @@ def monte_carlo_simulation(mc_input: dict, function: Callable[[dict], dict], n: 
 
     """
     
-    #TODO update based on new std logic
     #retrieve the standard uncertainty to be used in the uncertainty calculation
     #It will use the largest value of the standard uncertainty and the percentage standard uncertainty (if both are given). 
     #If not, it will use the one that is given

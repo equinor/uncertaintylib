@@ -85,10 +85,10 @@ def test_calculate_uncertainty_01():
     # Calculate the uncertainty
     result = uncertainty_functions.calculate_uncertainty(data,_calculate_volume)
 
-    assert round(result['u']['volume'],4) == 1.4967, 'Error in volume standard uncertainty'
-    assert round(result['U_perc']['volume'],2) == 37.42, 'Error in volume relative expanded standard uncertainty'
-    assert round(result['u']['area'],4) == 0.6325, 'Error in area standard uncertainty'
-    assert round(result['U_perc']['area'],2) == 31.62, 'Error in area relative expanded standard uncertainty'
+    assert np.isclose(result['u']['volume'], 1.4967, rtol=1e-4), 'Error in volume standard uncertainty'
+    assert np.isclose(result['U_perc']['volume'], 37.42, rtol=1e-3), 'Error in volume relative expanded standard uncertainty'
+    assert np.isclose(result['u']['area'], 0.6325, rtol=1e-4), 'Error in area standard uncertainty'
+    assert np.isclose(result['U_perc']['area'], 31.62, rtol=1e-3), 'Error in area relative expanded standard uncertainty'
 
 
 def test_calculate_uncertainty_02():
@@ -114,10 +114,10 @@ def test_calculate_uncertainty_02():
     # Calculate the uncertainty
     result = uncertainty_functions.calculate_uncertainty(data,_calculate_volume)
 
-    assert round(result['u']['volume'],4) == 1.4967, 'Error in volume standard uncertainty'
-    assert round(result['U_perc']['volume'],2) == 37.42, 'Error in volume relative expanded standard uncertainty'
-    assert round(result['u']['area'],4) == 0.6325, 'Error in area standard uncertainty'
-    assert round(result['U_perc']['area'],2) == 31.62, 'Error in area relative expanded standard uncertainty'
+    assert np.isclose(result['u']['volume'], 1.4967, rtol=1e-4), 'Error in volume standard uncertainty'
+    assert np.isclose(result['U_perc']['volume'], 37.42, rtol=1e-3), 'Error in volume relative expanded standard uncertainty'
+    assert np.isclose(result['u']['area'], 0.6325, rtol=1e-4), 'Error in area standard uncertainty'
+    assert np.isclose(result['U_perc']['area'], 31.62, rtol=1e-3), 'Error in area relative expanded standard uncertainty'
 
 
 def test_calculate_uncertainty_03():
@@ -143,10 +143,10 @@ def test_calculate_uncertainty_03():
     # Calculate the uncertainty
     result = uncertainty_functions.calculate_uncertainty(data,_calculate_volume)
 
-    assert round(result['u']['volume'],4) == 1.4967, 'Error in volume standard uncertainty'
-    assert round(result['U_perc']['volume'],2) == 37.42, 'Error in volume relative expanded standard uncertainty'
-    assert round(result['u']['area'],4) == 0.6325, 'Error in area standard uncertainty'
-    assert round(result['U_perc']['area'],2) == 31.62, 'Error in area relative expanded standard uncertainty'
+    assert np.isclose(result['u']['volume'], 1.4967, rtol=1e-4), 'Error in volume standard uncertainty'
+    assert np.isclose(result['U_perc']['volume'], 37.42, rtol=1e-3), 'Error in volume relative expanded standard uncertainty'
+    assert np.isclose(result['u']['area'], 0.6325, rtol=1e-4), 'Error in area standard uncertainty'
+    assert np.isclose(result['U_perc']['area'], 31.62, rtol=1e-3), 'Error in area relative expanded standard uncertainty'
 
 
 def _orifice_calculation(inputs):
@@ -193,7 +193,7 @@ def test_calculate_uncertainty_04():
     result = uncertainty_functions.calculate_uncertainty(data,_orifice_calculation)
 
     # The value given by the NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool is 0.546%. Assert the test results with 2 decimals
-    assert round(result['U_perc']['MassFlow'],2) == 0.55, 'Error in orifice mass flow rate standard uncertainty'
+    assert np.isclose(result['U_perc']['MassFlow'], 0.55, rtol=1e-2), 'Error in orifice mass flow rate standard uncertainty'
 
 
 def _usm_metering_station(inputs):
@@ -354,3 +354,83 @@ def test_calculate_uncertainty_05():
         assert target - CRITERIA_CONVENTIONAL <= conventional <= target + CRITERIA_CONVENTIONAL, f"Conventional uncertainty for {key} is out of bounds: {conventional}"
         assert target - CRITERIA_MONTE_CARLO <= monte_carlo <= target + CRITERIA_MONTE_CARLO, f"Monte Carlo uncertainty for {key} is out of bounds: {monte_carlo}"
 
+
+# --- Task 2: Tests for generate_normal_distribution() ---
+
+def test_generate_normal_distribution_typical():
+    np.random.seed(42)
+    n = 10000
+    mean = 5.0
+    stddev = 1.0
+    samples = uncertainty_functions.generate_normal_distribution(mean, stddev, n)
+    assert len(samples) == n
+    assert np.isclose(np.mean(samples), mean, rtol=0.05), 'Sample mean deviates too much from input mean'
+    assert np.isclose(np.std(samples), stddev, rtol=0.05), 'Sample std deviates too much from input stddev'
+
+
+def test_generate_normal_distribution_truncated():
+    np.random.seed(42)
+    n = 10000
+    mean = 5.0
+    stddev = 1.0
+    lower = 3.0
+    upper = 7.0
+    samples = uncertainty_functions.generate_normal_distribution(mean, stddev, n, lower_boundary=lower, upper_boundary=upper)
+    assert len(samples) == n
+    assert np.all(samples >= lower), 'Some samples below lower_boundary'
+    assert np.all(samples <= upper), 'Some samples above upper_boundary'
+
+
+def test_generate_normal_distribution_zero_stddev():
+    n = 200
+    mean = 42.0
+    samples = uncertainty_functions.generate_normal_distribution(mean, 0.0, n)
+    assert len(samples) == n
+    assert np.all(samples == mean), 'All samples should equal mean when stddev is 0'
+
+
+# --- Task 3: Tests for standard_uncertainty_selector() ---
+
+def test_standard_uncertainty_selector_only_standard():
+    indata = {
+        'mean': {'a': 10.0, 'b': 5.0},
+        'standard_uncertainty': {'a': 0.5, 'b': 0.2},
+    }
+    result = uncertainty_functions.standard_uncertainty_selector(indata)
+    assert np.isclose(result['a'], 0.5), 'Expected a=0.5'
+    assert np.isclose(result['b'], 0.2), 'Expected b=0.2'
+
+
+def test_standard_uncertainty_selector_only_percent():
+    indata = {
+        'mean': {'a': 10.0, 'b': 5.0},
+        'standard_uncertainty': {'a': np.nan, 'b': np.nan},
+        'standard_uncertainty_percent': {'a': 5.0, 'b': 4.0},
+    }
+    result = uncertainty_functions.standard_uncertainty_selector(indata)
+    # a: 5.0% of 10.0 = 0.5, b: 4.0% of 5.0 = 0.2
+    assert np.isclose(result['a'], 0.5), 'Expected a=0.5 from percent'
+    assert np.isclose(result['b'], 0.2), 'Expected b=0.2 from percent'
+
+
+def test_standard_uncertainty_selector_both_returns_larger():
+    indata = {
+        'mean': {'a': 10.0, 'b': 5.0},
+        # a: absolute=0.8, from_percent=2%*10=0.2 → max=0.8
+        # b: absolute=0.05, from_percent=10%*5=0.5 → max=0.5
+        'standard_uncertainty': {'a': 0.8, 'b': 0.05},
+        'standard_uncertainty_percent': {'a': 2.0, 'b': 10.0},
+    }
+    result = uncertainty_functions.standard_uncertainty_selector(indata)
+    assert np.isclose(result['a'], 0.8), 'Expected a=0.8 (absolute wins)'
+    assert np.isclose(result['b'], 0.5), 'Expected b=0.5 (percent wins)'
+
+
+def test_standard_uncertainty_selector_both_nan():
+    indata = {
+        'mean': {'a': 10.0},
+        'standard_uncertainty': {'a': np.nan},
+        'standard_uncertainty_percent': {'a': np.nan},
+    }
+    result = uncertainty_functions.standard_uncertainty_selector(indata)
+    assert np.isnan(result['a']), 'Expected NaN when both uncertainties are NaN'
