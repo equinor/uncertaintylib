@@ -1,0 +1,204 @@
+# Runs the test suite, checks the built distributions and runs the examples.
+#
+# Triggers: every pull request and push to main, nightly (to catch breaking changes in
+# dependencies such as numpy, scipy, pandas, matplotlib and pvtlib), and workflow_call: the
+# publishing workflow (build-and-distribute.yml) calls this workflow on a GitHub release and
+# uploads exactly the files the `package` job built and tested here.
+#
+# Jobs:
+# - test:     flake8 and pytest on Ubuntu (Python 3.10-3.14) and Windows (3.10 and 3.14).
+# - package:  builds the sdist and the wheel once, checks them with `twine check --strict` and
+#             inspects their content, then installs each of them into a clean virtual environment
+#             and runs a copy of tests/ outside the checkout against it. The files are kept as the
+#             artifact `dist`.
+# - examples: runs every example script and notebook headless (tools/run_examples.py).
+# - coverage: test coverage on Python 3.13, kept as the artifact `coverage`.
+#
+# No job uses a secret.
+
+name: Tests
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * *'  # daily at midnight UTC
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: windows-latest
+            python-version: "3.10"
+          - os: windows-latest
+            python-version: "3.14"
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install the package and the test dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8
+        python -m pip install ".[test]"
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      env:
+        MPLBACKEND: Agg
+      run: |
+        python -m pytest -p no:cacheprovider
+
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.13'
+    - name: Build the sdist and the wheel
+      run: |
+        python -m pip install --upgrade pip build twine
+        python -m build
+    - name: Check the metadata with twine
+      run: |
+        twine check --strict dist/*
+    - name: Check the file names and the content of the distributions
+      run: |
+        python - <<'PY'
+        import os, pathlib, tarfile, tomllib, zipfile
+
+        version = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"]
+        expected = {f"uncertaintylib-{version}.tar.gz", f"uncertaintylib-{version}-py3-none-any.whl"}
+        found = set(os.listdir("dist"))
+        assert found == expected, f"dist/ holds {sorted(found)}, expected {sorted(expected)}"
+
+        modules = {
+            "uncertaintylib/__init__.py",
+            "uncertaintylib/plot_functions.py",
+            "uncertaintylib/uncertainty_functions.py",
+            "uncertaintylib/uncertainty_models/__init__.py",
+            "uncertaintylib/uncertainty_models/gas_composition.py",
+        }
+        wheel_names = zipfile.ZipFile(f"dist/uncertaintylib-{version}-py3-none-any.whl").namelist()
+        wheel_modules = {name for name in wheel_names if name.endswith(".py")}
+        assert wheel_modules == modules, f"wheel modules {sorted(wheel_modules)}, expected {sorted(modules)}"
+
+        root = f"uncertaintylib-{version}/"
+        sdist_names = set(tarfile.open(f"dist/uncertaintylib-{version}.tar.gz").getnames())
+        required = {root + name for name in ["pyproject.toml", "README.md", "LICENSE", *modules]}
+        missing = required - sdist_names
+        assert not missing, f"sdist lacks {sorted(missing)}"
+
+        print("wheel:", *sorted(wheel_names), sep="\n  ")
+        print("sdist:", *sorted(sdist_names), sep="\n  ")
+        PY
+    - name: Test the wheel and the sdist in clean environments
+      # Each distribution is installed into its own new virtual environment and tested with a copy
+      # of tests/ outside the checkout, so the source tree cannot be imported by accident. The sdist
+      # is unpacked into a folder without .git and installed from there. Inside the pytest session,
+      # tests/test_installed_package.py (enabled by UNCERTAINTYLIB_TEST_INSTALLED) asserts that
+      # uncertaintylib is imported from the virtual environment and reports the pyproject version.
+      env:
+        UNCERTAINTYLIB_TEST_INSTALLED: "1"
+        MPLBACKEND: Agg
+      run: |
+        set -euo pipefail
+        version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+        export UNCERTAINTYLIB_EXPECTED_VERSION="${version}"
+        dist="${GITHUB_WORKSPACE}/dist"
+        work="${RUNNER_TEMP}/distribution-test"
+        mkdir -p "${work}/sdist-source"
+        tar -xzf "${dist}/uncertaintylib-${version}.tar.gz" -C "${work}/sdist-source"
+        for kind in wheel sdist; do
+          if [ "${kind}" = wheel ]; then
+            target="${dist}/uncertaintylib-${version}-py3-none-any.whl"
+          else
+            target="${work}/sdist-source/uncertaintylib-${version}"
+          fi
+          echo "::group::${kind}: ${target}"
+          python -m venv "${work}/venv-${kind}"
+          venv_python="${work}/venv-${kind}/bin/python"
+          "${venv_python}" -m pip install --upgrade pip
+          "${venv_python}" -m pip install "${target}" pytest pvtlib
+          rm -rf "${work}/tests-${kind}"
+          cp -r "${GITHUB_WORKSPACE}/tests" "${work}/tests-${kind}"
+          (cd "${work}/tests-${kind}" && "${venv_python}" -m pytest --import-mode=importlib -p no:cacheprovider -rA .)
+          echo "::endgroup::"
+        done
+    - name: Keep the tested distributions
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: dist
+        path: dist/
+        if-no-files-found: error
+        retention-days: 7
+
+  examples:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.13'
+    - name: Install the package and the example dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install ".[examples]"
+    - name: Run every example script and notebook
+      # The examples are copied to RUNNER_TEMP and run from there; nothing is written back to the
+      # checkout. Each script or notebook has 15 minutes.
+      #
+      # Known failure, reported to the owner: example 02 sets 'max' to None, which the README also
+      # documents, and monte_carlo_simulation() raises TypeError on np.isnan(None). The example is
+      # still run; the job fails as soon as it starts to succeed, so this entry gets removed.
+      run: |
+        python tools/run_examples.py --work-dir "${RUNNER_TEMP}/examples-run" --timeout-seconds 900 \
+          --expected-failure "02 - Mass flow with inline parameters/example_02.py"
+
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.13'
+    - name: Install the package and the test dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install ".[test]" pytest-cov
+    - name: Test with coverage
+      env:
+        MPLBACKEND: Agg
+      run: |
+        python -m pytest -p no:cacheprovider --cov=uncertaintylib --cov-report=xml --cov-report=term
+    - name: Keep the coverage report
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: coverage
+        path: coverage.xml
+        if-no-files-found: error

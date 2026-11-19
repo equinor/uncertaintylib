@@ -1,0 +1,12 @@
+# Weekly, grouped updates of the GitHub Actions used by the workflows. The actions are pinned to
+# full commit SHAs with the release in a comment; Dependabot updates both in one pull request.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
