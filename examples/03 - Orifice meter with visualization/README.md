@@ -32,17 +32,37 @@ distribution):
 
 | Input | Mean | Standard uncertainty (%) | Unit in the CSV |
 | --- | --- | --- | --- |
-| `C` | 0.5 | 0.25 | |
-| `epsilon` | 0.9993 | 0.00311 | |
+| `C` | 0.60282 | 0.25 | (dimensionless) |
+| `epsilon` | 0.99935 | 0.00311 | (dimensionless) |
 | `D` | 300 | 0.2 | mm |
 | `d` | 150 | 0.035 | mm |
 | `deltaP` | 250.2 | 0.03 | mbar |
 | `P` | 100 | 0.15 | bara |
-| `m/Z` | 0.4 | 0.216 | kg/mol |
-| `T` | 323.15 | 0.0464 | C |
+| `m/Z` | 0.021019 | 0.216 | kg/mol |
+| `T` | 323.15 | 0.0464 | K |
 
-Note: the CSV gives the unit of `T` as C, while the value 323.15 and the use of `T` in the gas
-law term of the formula correspond to kelvin.
+`m/Z` is the molar mass divided by the compressibility factor. With `R` in J/(mol K) and `T` in
+K, `P1 * (m/Z) / (R * T)` is the gas density in kg/m3, and `qm` is in kg/s.
+
+### Source of the input values
+
+- `m/Z` = 0.021019 kg/mol: molar mass M = 18.125 g/mol and Z = 0.86232, calculated with
+  pvtlib 1.16.1, AGA8 GERG-2008, at P = 100 bara and T = 323.15 K. The gas is the dry natural gas
+  composition from pvtlib example "01 Gas Properties from AGA8" (mol%: N2 1.0, CO2 1.0, C1 90.0,
+  C2 5.0, C3 2.0, iC4 0.5, nC4 0.5).
+- `epsilon` = 0.99935: ISO 5167-2:2022 orifice expansibility (pvtlib
+  `calculate_expansibility_orifice`), with isentropic exponent kappa = 1.4236 from GERG-2008 for
+  the same gas and state.
+- `C` = 0.60282: ISO 5167-2:2022 Reader-Harris/Gallagher discharge coefficient for an orifice
+  plate with corner tappings (pvtlib default), D = 300 mm, d = 150 mm (beta = 0.5). It is solved
+  iteratively with the Reynolds number in pvtlib `calculate_flow_orifice`, which gives
+  Re_D = 6.37e6. The density is 78.230 kg/m3 from GERG-2008, and the viscosity is 1.450e-5 Pa s
+  from pvtlib `natural_gas_viscosity_Lee_et_al` (Lee, Gonzalez and Eakin, 1966).
+- The relative standard uncertainty of `C` (0.25 %) corresponds to the ISO 5167-2 value of
+  0.5 % (k=2) for 0.2 <= beta <= 0.6.
+
+The example script itself does not depend on pvtlib. The values above are fixed inputs in the CSV.
+The calculated mass flow is about 21.75 kg/s, with an expanded uncertainty of about 0.59 % (k=2).
 
 ## Files
 
