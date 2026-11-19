@@ -2,7 +2,8 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/uncertaintylib)](https://pypi.org/project/uncertaintylib/)
 [![Python versions](https://img.shields.io/pypi/pyversions/uncertaintylib)](https://pypi.org/project/uncertaintylib/)
-[![Tests](https://github.com/equinor/uncertaintylib/actions/workflows/run-tests.yml/badge.svg)](https://github.com/equinor/uncertaintylib/actions/workflows/run-tests.yml)
+[![Tests](https://github.com/equinor/uncertaintylib/actions/workflows/tests.yml/badge.svg)](https://github.com/equinor/uncertaintylib/actions/workflows/tests.yml)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg)](https://equinor.github.io/uncertaintylib/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 `uncertaintylib` is a Python library for estimating and propagating uncertainties in engineering and scientific calculations. The library is developed by Equinor K-lab Technology Test Center. It is designed to work with any Python function whose inputs and outputs are flat dictionaries.
@@ -59,7 +60,7 @@ results = uncertainty_functions.calculate_uncertainty(
 print(results)
 ```
 
-Another example, [Example 06](https://github.com/equinor/uncertaintylib/blob/main/examples/example_06/example_06.ipynb), demonstrates uncertainty calculations for a natural gas metering station, demonstrating usage of many of the functions available in this library. 
+Another example, [Example 06](examples/06%20-%20Gas%20metering%20station%20%28Jupyter%29), demonstrates uncertainty calculations for a natural gas metering station, demonstrating usage of many of the functions available in this library. 
 
 ## Uncertainty Models
 
@@ -83,16 +84,16 @@ All plots are generated using matplotlib and can be customized or saved using st
 
 ## Documentation & Examples
 
-- See the `examples/` folder for practical scripts demonstrating usage.
-- API documentation is available in the source code docstrings.
+- The documentation site, <https://equinor.github.io/uncertaintylib/>, has the API reference (generated from the docstrings) and a page for each example.
+- See the [`examples/`](examples) folder for practical scripts and notebooks demonstrating usage.
 
 ## Running Tests
 
-Tests are located in the `tests/` folder and are run with [pytest](https://pytest.org). Two additional packages are required:
+Tests are located in the `tests/` folder and are run with [pytest](https://pytest.org). The `test` extra installs the additional packages they need (pytest and pvtlib):
 
 ```bash
-pip install pytest pvtlib
-pytest tests
+pip install -e .[test]
+pytest
 ```
 
 ## License
