@@ -21,6 +21,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from importlib.metadata import PackageNotFoundError, version as _distribution_version
+
 from . import uncertainty_functions
 from . import plot_functions
 from . import uncertainty_models
+
+# The version is the one in pyproject.toml, read from the metadata of the installed distribution.
+# A source tree that has never been installed has no metadata and reports "0+unknown".
+try:
+    __version__ = _distribution_version("uncertaintylib")
+except PackageNotFoundError:
+    __version__ = "0+unknown"

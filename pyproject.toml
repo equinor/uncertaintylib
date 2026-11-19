@@ -31,8 +31,32 @@ dependencies = [
     "pillow>=12.2.0",    # Dependency of matplotlib. Pinned because of dependabot alert.
 ]
 
+[project.optional-dependencies]
+# The tests import pvtlib (GERG-2008 and the differential pressure meter model).
+test = [
+    "pytest>=7.0",
+    "pvtlib",
+]
+# Runs the example scripts and notebooks in examples/ (see examples/*/requirements.txt).
+examples = [
+    "pvtlib>=1.14.0",
+    "notebook",
+    "ipykernel",
+    "nbclient",
+]
+# Builds the documentation site; see docs/conf.py.
+docs = [
+    "sphinx>=7.3",
+    "myst-nb>=1.1",
+    "furo>=2024.1.29",
+]
+
 [project.urls]
 Homepage = "https://github.com/equinor/uncertaintylib"
+Documentation = "https://equinor.github.io/uncertaintylib/"
 
 [tool.setuptools.packages.find]
 include = ["uncertaintylib*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
