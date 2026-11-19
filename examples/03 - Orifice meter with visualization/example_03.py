@@ -35,6 +35,15 @@ This script:
 6. Compares Monte Carlo results to conventional uncertainty calculations.
 7. Plots Monte Carlo results and uncertainty contributions.
 
+Units: C and epsilon [-], D and d [mm], deltaP [mbar], P [bara], m/Z [kg/mol],
+T [K], R = 8.314 J/(mol K). Output qm [kg/s].
+
+Source of m/Z = 0.021019 kg/mol: molar mass M = 18.125 g/mol and Z = 0.86232
+calculated with pvtlib 1.16.1, AGA8 GERG-2008, at P = 100 bara and T = 323.15 K,
+for the dry natural gas composition in pvtlib example "01 Gas Properties from AGA8"
+(mol%: N2 1.0, CO2 1.0, C1 90.0, C2 5.0, C3 2.0, iC4 0.5, nC4 0.5).
+The relative standard uncertainty of m/Z (0.216 %) is unchanged.
+
 Created on Thu Apr 18 13:11:41 2024
 @author: CHHAG
 """
