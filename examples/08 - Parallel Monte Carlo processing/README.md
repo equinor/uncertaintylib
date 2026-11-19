@@ -34,6 +34,10 @@ The script:
 ## Input Data
 - `example_03_input.csv`: CSV file containing input parameters and their uncertainties (same as Example 03)
 
+Units in the CSV: `C` and `epsilon` [-], `D` and `d` [mm], `deltaP` [mbar], `P` [bara], `m/Z` [kg/mol], `T` [K]. The output `qm` is in kg/s.
+
+`m/Z` = 0.021019 kg/mol is the molar mass divided by the compressibility factor (M = 18.125 g/mol, Z = 0.86232), calculated with pvtlib 1.16.1, AGA8 GERG-2008, at P = 100 bara and T = 323.15 K for the dry natural gas composition in pvtlib example "01 Gas Properties from AGA8" (mol%: N2 1.0, CO2 1.0, C1 90.0, C2 5.0, C3 2.0, iC4 0.5, nC4 0.5).
+
 ## Expected Results
 
 The script outputs:
