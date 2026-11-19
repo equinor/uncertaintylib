@@ -6,4 +6,4 @@ d,150,,0.035,normal,,,mm
 deltaP,250.2,,0.03,normal,,,mbar
 P,100,,0.15,normal,,,bara
 m/Z,0.4,,0.216,normal,,,kg/mol
-T,323.15,,0.0464,normal,,,C
+T,323.15,,0.0464,normal,,,K
