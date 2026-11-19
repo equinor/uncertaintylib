@@ -434,3 +434,73 @@ def test_standard_uncertainty_selector_both_nan():
     }
     result = uncertainty_functions.standard_uncertainty_selector(indata)
     assert np.isnan(result['a']), 'Expected NaN when both uncertainties are NaN'
+
+
+# --- Tests for None/NaN 'min' and 'max' in monte_carlo_simulation() ---
+# A limit given as None or nan means "no limit". The normal distribution is truncated
+# by rejection sampling, so samples outside a limit are redrawn (never clipped).
+
+def _identity_xy(inputs):
+    return {'x': inputs['x'], 'y': inputs['y']}
+
+
+def _mc_samples(min_limits, max_limits, seed=1, n=2000):
+    mc_input = {
+        'mean': {'x': 0.0, 'y': 0.0},
+        'standard_uncertainty': {'x': 1.0, 'y': 1.0},
+        'standard_uncertainty_percent': {'x': np.nan, 'y': np.nan},
+        'distribution': {'x': 'normal', 'y': 'normal'},
+        'min': min_limits,
+        'max': max_limits,
+    }
+    np.random.seed(seed)
+    return uncertainty_functions.monte_carlo_simulation(mc_input, _identity_xy, n)
+
+
+def test_monte_carlo_none_max_is_no_upper_limit():
+    result = _mc_samples({'x': 0.0, 'y': 0.0}, {'x': None, 'y': None})
+    reference = _mc_samples({'x': 0.0, 'y': 0.0}, {'x': np.inf, 'y': np.inf})
+    assert len(result) == 2000
+    assert result['x'].min() >= 0.0
+    assert result['x'].max() > 2.0
+    assert np.array_equal(result['x'].values, reference['x'].values)
+    assert np.array_equal(result['y'].values, reference['y'].values)
+
+
+def test_monte_carlo_none_min_is_no_lower_limit():
+    result = _mc_samples({'x': None, 'y': None}, {'x': 0.0, 'y': 0.0})
+    reference = _mc_samples({'x': -np.inf, 'y': -np.inf}, {'x': 0.0, 'y': 0.0})
+    assert result['x'].max() <= 0.0
+    assert result['x'].min() < -2.0
+    assert np.array_equal(result['x'].values, reference['x'].values)
+    assert np.array_equal(result['y'].values, reference['y'].values)
+
+
+def test_monte_carlo_none_min_and_max_is_untruncated():
+    result = _mc_samples({'x': None, 'y': None}, {'x': None, 'y': None})
+    reference = _mc_samples({'x': -np.inf, 'y': -np.inf}, {'x': np.inf, 'y': np.inf})
+    assert result['x'].min() < -2.0
+    assert result['x'].max() > 2.0
+    assert np.array_equal(result['x'].values, reference['x'].values)
+    assert np.array_equal(result['y'].values, reference['y'].values)
+
+
+def test_monte_carlo_mixed_none_and_numeric_limits():
+    result = _mc_samples({'x': None, 'y': -0.5}, {'x': 0.5, 'y': None})
+    reference = _mc_samples({'x': -np.inf, 'y': -0.5}, {'x': 0.5, 'y': np.inf})
+    assert result['x'].max() <= 0.5
+    assert result['x'].min() < -2.0
+    assert result['y'].min() >= -0.5
+    assert result['y'].max() > 2.0
+    assert np.array_equal(result['x'].values, reference['x'].values)
+    assert np.array_equal(result['y'].values, reference['y'].values)
+
+
+def test_monte_carlo_nan_limits_unchanged():
+    result = _mc_samples({'x': np.nan, 'y': 0.0}, {'x': np.nan, 'y': np.nan})
+    reference = _mc_samples({'x': -np.inf, 'y': 0.0}, {'x': np.inf, 'y': np.inf})
+    assert result['x'].min() < -2.0
+    assert result['x'].max() > 2.0
+    assert result['y'].min() >= 0.0
+    assert np.array_equal(result['x'].values, reference['x'].values)
+    assert np.array_equal(result['y'].values, reference['y'].values)
