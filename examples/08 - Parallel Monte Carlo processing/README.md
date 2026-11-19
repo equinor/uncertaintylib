@@ -22,8 +22,16 @@ The script:
 ## Key Features
 - **Multiprocessing.Pool**: Uses all available CPU cores for parallel execution
 - **Batch Processing**: Divides total simulations equally across processors
+- **Independent random streams**: Each batch gets its own seed from `numpy.random.SeedSequence(SEED).spawn(...)`
 - **Performance Metrics**: Calculates speedup factor and percentage time reduction
 - **Statistical Validation**: Confirms parallel results match baseline within expected Monte Carlo variability
+
+## Random Number Streams
+`uncertaintylib` draws its Monte Carlo samples from numpy's global random generator (`np.random.normal` / `np.random.uniform`). That generator is not automatically independent between worker processes:
+- With the `fork` start method (the default on Linux up to Python 3.13), every worker inherits a copy of the parent's generator state. Without seeding, all batches would then contain exactly the same random samples, so the parallel result would effectively use only `N / num_processes` independent samples.
+- With the `spawn` start method (Windows, macOS), each worker seeds itself from the operating system. The batches are independent, but the results cannot be reproduced.
+
+The script therefore spawns one child seed per batch from a top-level `SEED` with `numpy.random.SeedSequence(SEED).spawn(num_processes)`. Each batch calls `np.random.seed(...)` with its own seed before sampling. This gives statistically independent batches with every start method, and the results are reproducible for a given `SEED` and number of processes. The sequential baseline is seeded with `SEED` as well.
 
 ## Dependencies
 - pandas

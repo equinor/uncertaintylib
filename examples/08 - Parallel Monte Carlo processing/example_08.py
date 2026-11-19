@@ -85,8 +85,12 @@ def calculate_massflow(input_dict):
     return output_dict
 
 # Function to run a single batch
-def run_batch(batch_size):
-    """Run Monte Carlo simulation for a single batch"""
+def run_batch(batch_size, seed_sequence):
+    """Run Monte Carlo simulation for a single batch with its own random stream"""
+    # uncertaintylib draws from numpy's global random generator (np.random.normal/uniform).
+    # Seed it per batch, so batches never share a random stream (with 'fork' every worker
+    # would otherwise inherit the same generator state) and results are reproducible.
+    np.random.seed(seed_sequence.generate_state(4))
     # Load input parameters inside the function to avoid pickling issues
     csv_path = os.path.join(os.path.dirname(__file__), 'example_03_input.csv')
     mc_input = pd.read_csv(csv_path).set_index('input_name').to_dict()
@@ -98,6 +102,7 @@ if __name__ == '__main__':
     mc_input = pd.read_csv(csv_path).set_index('input_name').to_dict()
     
     N = 1000000
+    SEED = 12345  # Top-level seed: makes both the baseline and the parallel results reproducible
     SEP = "="*80  # Separator line for output formatting
 
     print(SEP)
@@ -105,6 +110,7 @@ if __name__ == '__main__':
     print(SEP)
 
     # Step 1: Run Monte Carlo simulation to propagate input uncertainties
+    np.random.seed(SEED)
     start_time = time.time()
     mc_res = uncertainty_functions.monte_carlo_simulation(mc_input, calculate_massflow, N)
     mc_stats = uncertainty_functions.calculate_monte_carlo_statistics(mc_res)
@@ -132,13 +138,14 @@ if __name__ == '__main__':
     print(f"Batch size per process: {batch_size}")
     print(f"Total simulations: {num_processes * batch_size}")
 
-    # Prepare arguments for parallel execution - just pass batch_size
-    batch_args = [batch_size for _ in range(num_processes)]
+    # Prepare arguments for parallel execution: batch size and an independent seed per batch
+    batch_seeds = np.random.SeedSequence(SEED).spawn(num_processes)
+    batch_args = [(batch_size, batch_seeds[i]) for i in range(num_processes)]
 
     # Run parallel batches
     start_time_parallel = time.time()
     with Pool(processes=num_processes) as pool:
-        batch_results = pool.map(run_batch, batch_args)
+        batch_results = pool.starmap(run_batch, batch_args)
     end_time_parallel = time.time()
 
     # Concatenate results
