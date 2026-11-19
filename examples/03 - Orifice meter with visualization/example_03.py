@@ -44,6 +44,19 @@ for the dry natural gas composition in pvtlib example "01 Gas Properties from AG
 (mol%: N2 1.0, CO2 1.0, C1 90.0, C2 5.0, C3 2.0, iC4 0.5, nC4 0.5).
 The relative standard uncertainty of m/Z (0.216 %) is unchanged.
 
+Source of C = 0.60282 and epsilon = 0.99935: pvtlib 1.16.1, ISO 5167-2:2022,
+orifice plate with corner tappings (pvtlib default), D = 300 mm, d = 150 mm
+(beta = 0.5), deltaP = 250.2 mbar, P = 100 bara, same gas and state as above.
+- epsilon: calculate_expansibility_orifice with isentropic exponent
+  kappa = 1.4236 from AGA8 GERG-2008.
+- C: Reader-Harris/Gallagher equation, solved iteratively with the Reynolds
+  number in calculate_flow_orifice (Re_D = 6.37e6). Density 78.230 kg/m3 from
+  GERG-2008, viscosity 1.450e-5 Pa s from pvtlib natural_gas_viscosity_Lee_et_al
+  (Lee, Gonzalez and Eakin, 1966). C changes by about 0.01 % for a +/-20 %
+  change in viscosity.
+The relative standard uncertainties of C (0.25 %, equal to the ISO 5167-2 value
+of 0.5 % at k=2 for 0.2 <= beta <= 0.6) and epsilon (0.00311 %) are unchanged.
+
 Created on Thu Apr 18 13:11:41 2024
 @author: CHHAG
 """
