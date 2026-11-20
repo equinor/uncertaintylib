@@ -20,8 +20,9 @@ Monte Carlo method.
    - calculates the mass flow (kg/h) and the volume flow at standard conditions (Sm3/h) at
      288.15 K and 101.325 kPa.
 
-   The composition passed to GERG-2008 uses the perturbed values of C1, C2, C3, iC4 and nC4; N2
-   and CO2 are taken at their mean values from the inputs.
+   The composition passed to GERG-2008 (at operating and at standard conditions) uses the values
+   of all seven components N2, CO2, C1, C2, C3, iC4 and nC4 from the function input, so each
+   component's uncertainty is included in both the conventional and the Monte Carlo calculation.
 3. Calculates the uncertainty with `calculate_uncertainty` and prints the gas properties and
    flow rates with their expanded uncertainty (k=2).
 4. Plots the ten largest contributions to the uncertainty of the standard volume flow.

@@ -60,11 +60,21 @@ jobs:
       version: ${{ steps.version.outputs.version }}
 
     steps:
-    - name: Only release from main
-      if: github.ref != 'refs/heads/main'
+    - name: Only release from main, and only in the first attempt
+      # A later attempt of this job would work out the version from tags that may include the one
+      # this run already created, and so release the next version instead. "Re-run failed jobs"
+      # does not run this job again once it has succeeded; "Re-run all jobs" is refused here.
+      env:
+        RUN_ATTEMPT: ${{ github.run_attempt }}
       run: |
-        echo "::error::Releases are made from main only. This run is on ${GITHUB_REF}."
-        exit 1
+        if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+          echo "::error::Releases are made from main only. This run is on ${GITHUB_REF}."
+          exit 1
+        fi
+        if [ "${RUN_ATTEMPT}" != "1" ]; then
+          echo "::error::The prepare job runs only in the first attempt. Use \"Re-run failed jobs\", or start a new run if nothing was published."
+          exit 1
+        fi
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
@@ -212,7 +222,7 @@ jobs:
       id: pypi
       # Normally nothing. Files may exist only after an earlier attempt of this run uploaded some of
       # them: then each must be one of ours (same SHA-256) and carry PyPI provenance from this
-      # repository's release.yml, and the upload skips them.
+      # repository's release.yml in the environment pypi, and the upload skips them.
       run: |
         set -euo pipefail
         pypi_json="${RUNNER_TEMP}/pypi.json"
@@ -248,11 +258,12 @@ jobs:
           if [ "${status}" != 200 ] || ! jq -e --arg repo "${REPO}" \
               'any(.attestation_bundles[]; .publisher.kind == "GitHub"
                    and (.publisher.repository | ascii_downcase) == ($repo | ascii_downcase)
-                   and .publisher.workflow == "release.yml")' "${provenance}" > /dev/null; then
-            echo "::error::${file} on PyPI has no provenance from ${REPO} release.yml (HTTP ${status})."
+                   and .publisher.workflow == "release.yml"
+                   and .publisher.environment == "pypi")' "${provenance}" > /dev/null; then
+            echo "::error::${file} on PyPI has no provenance from ${REPO} release.yml, environment pypi (HTTP ${status})."
             exit 1
           fi
-          echo "${file}: same SHA-256 as the manifest, provenance from ${REPO} release.yml."
+          echo "${file}: same SHA-256 as the manifest, provenance from ${REPO} release.yml (environment pypi)."
         done <<< "${existing}"
         echo "skip_existing=true" >> "${GITHUB_OUTPUT}"
     - name: Create the tag at the release commit

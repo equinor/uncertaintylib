@@ -66,9 +66,11 @@ A release needs one approval, in the environment `pypi`. Nothing is tagged or pu
 - Before the **publish** job has started, nothing is tagged or published: fix the cause and start a
   new run.
 - Once the **publish** job has started, use **Re-run failed jobs** in the *same* run. The publish
-  job accepts their own earlier partial work only on a re-run of the same run (same commit, same
+  job accepts its own earlier partial work only on a re-run of the same run (same commit, same
   files): an existing tag must point at the release commit, and files already on PyPI must be the
-  ones built in that run (same SHA-256, with provenance from this repository's `release.yml`).
+  ones built in that run (same SHA-256, with PyPI provenance from this repository's `release.yml` in the environment
+  `pypi`). Do not use **Re-run all jobs**: the prepare job refuses to run in a later attempt, as
+  it would work out the next version from tags that may include the one this run created.
 - Never start a new run for a version that already has files on PyPI, and never upload by hand.
   PyPI never accepts a file name twice, even after deletion.
 - A published tag is never moved or deleted. A mistake is corrected by a new release.
