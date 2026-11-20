@@ -35,7 +35,6 @@ This script:
 6. Compares Monte Carlo results to conventional uncertainty calculations.
 
 Created on Thu Apr 18 13:11:41 2024
-@author: CHHAG
 """
 
 from uncertaintylib import uncertainty_functions
