@@ -51,22 +51,22 @@ A release is always started by a person; merging or pushing to `main` never rele
       builds the sdist and the wheel once, checks their names, content and metadata
       (`twine check --strict`), installs each into a clean virtual environment and runs the test
       suite against it, and keeps exactly those files with their SHA-256 sums.
-   4. **tag** - waits for approval in the environment `release`, then creates the tag at the
-      release commit.
-   5. **publish** - waits for approval in the environment `pypi`, checks the files against the
-      SHA-256 sums, uploads them to PyPI with Trusted Publishing (no PyPI token is stored
-      anywhere) and checks that PyPI holds exactly those files.
-   6. **github-release** - creates the GitHub release for the tag, with generated notes and the same
+   4. **publish** - waits for approval in the environment `pypi`, checks the files against the
+      SHA-256 sums, checks what PyPI already holds for the version, creates the tag at the release
+      commit, uploads the files to PyPI with Trusted Publishing (no PyPI token is stored anywhere)
+      and checks that PyPI holds exactly those files.
+   5. **github-release** - creates the GitHub release for the tag, with generated notes and the same
       files attached.
 4. Edit the release notes on GitHub if the effect on calculated results needs explaining.
 
-So a release needs two approvals: one before the tag is created and one before the upload to PyPI.
+A release needs one approval, in the environment `pypi`. Nothing is tagged or published before it.
 
 ## If a release run fails
 
-- Before the **tag** job has run, nothing is published: fix the cause and start a new run.
-- From the **tag** job on, use **Re-run failed jobs** in the *same* run. The tag and publish jobs
-  accept their own earlier partial work only on a re-run of the same run (same commit, same
+- Before the **publish** job has started, nothing is tagged or published: fix the cause and start a
+  new run.
+- Once the **publish** job has started, use **Re-run failed jobs** in the *same* run. The publish
+  job accepts their own earlier partial work only on a re-run of the same run (same commit, same
   files): an existing tag must point at the release commit, and files already on PyPI must be the
   ones built in that run (same SHA-256, with provenance from this repository's `release.yml`).
 - Never start a new run for a version that already has files on PyPI, and never upload by hand.
@@ -77,11 +77,12 @@ So a release needs two approvals: one before the tag is created and one before t
 
 Settings made once by a repository administrator, before the first release:
 
-- **Environments** - *Settings → Environments*: create `release` and `pypi`, each with *Required
-  reviewers* and, under *Deployment branches and tags*, only the branch `main`.
+- **Environment** - *Settings → Environments*: create `pypi` with *Required reviewers* and, under
+  *Deployment branches and tags*, only the branch `main`. Its approval is the only approval of a
+  release.
 - **Trusted Publisher on PyPI** - on pypi.org, *uncertaintylib → Manage → Publishing*: add a GitHub
   trusted publisher with owner `equinor`, repository `uncertaintylib`, workflow `release.yml` and
   environment `pypi`.
-- **Protect release tags** - *Settings → Rules → Rulesets → New tag ruleset*, target
+- **Protect release tags** (optional) - *Settings → Rules → Rulesets → New tag ruleset*, target
   `refs/tags/[0-9]*`, with *Restrict updates* and *Restrict deletions*. Do not restrict creation,
   as the workflow creates the tag.

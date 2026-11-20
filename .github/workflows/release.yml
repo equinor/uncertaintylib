@@ -14,16 +14,16 @@
 #                       into a clean virtual environment and runs the test suite against it, and
 #                       keeps exactly those files (artifact release-dist) with their SHA-256 sums
 #                       (artifact release-manifest).
-#   4. tag            - waits for approval (environment "release"), then creates the tag at the
-#                       release commit through the GitHub API.
-#   5. publish        - waits for approval (environment "pypi"), then uploads the tested files to
-#                       PyPI with Trusted Publishing (OpenID Connect; there is no PyPI token) and
-#                       checks that PyPI holds exactly those files.
-#   6. github-release - creates the GitHub release for the tag with the same files attached.
+#   4. publish        - waits for approval (environment "pypi", the only approval), checks the
+#                       files against the manifest and what PyPI already holds, creates the tag at
+#                       the release commit through the GitHub API, uploads the tested files to PyPI
+#                       with Trusted Publishing (OpenID Connect; there is no PyPI token) and checks
+#                       that PyPI holds exactly those files.
+#   5. github-release - creates the GitHub release for the tag with the same files attached.
 #
 # If a job fails, use "Re-run failed jobs" in the same run; never start a new run for a version
-# that already has files on PyPI. The tag and publish jobs accept their own earlier partial work
-# only on a re-run (github.run_attempt > 1). Tags and releases created with GITHUB_TOKEN do not
+# that already has files on PyPI. The publish job accepts its own earlier partial work (tag, files
+# on PyPI) only on a re-run (github.run_attempt > 1). Tags and releases created with GITHUB_TOKEN do not
 # start other workflows, which is why the tests are called from here.
 #
 # No job uses a repository secret.
@@ -167,66 +167,20 @@ jobs:
         if-no-files-found: error
         retention-days: 90
 
-  tag:
-    needs: [prepare, build]
-    runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      contents: write
-    env:
-      VERSION: ${{ needs.prepare.outputs.version }}
-      GH_TOKEN: ${{ github.token }}
-      REPO: ${{ github.repository }}
-      RUN_ATTEMPT: ${{ github.run_attempt }}
-
-    steps:
-    - name: Create the tag at the release commit
-      # A lightweight tag, like the earlier release tags. If the tag exists, it is accepted only on
-      # a re-run and only if it points at this commit (an earlier attempt created it).
-      run: |
-        set -euo pipefail
-        ref_json="${RUNNER_TEMP}/ref.json"
-        read_tag() {
-          curl -sS -o "${ref_json}" -w '%{http_code}' \
-            -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${REPO}/git/ref/tags/${VERSION}"
-        }
-        status=$(read_tag)
-        if [ "${status}" = 404 ]; then
-          gh api --method POST "repos/${REPO}/git/refs" \
-            -f ref="refs/tags/${VERSION}" -f sha="${GITHUB_SHA}" > /dev/null
-          echo "Created tag ${VERSION} at ${GITHUB_SHA}."
-          status=$(read_tag)
-        elif [ "${status}" = 200 ]; then
-          if [ "${RUN_ATTEMPT}" -le 1 ]; then
-            echo "::error::Tag ${VERSION} already exists, but this is the first attempt of the run."
-            exit 1
-          fi
-          echo "Tag ${VERSION} exists (re-run, attempt ${RUN_ATTEMPT}); checking where it points."
-        else
-          echo "::error::Reading tag ${VERSION} returned HTTP ${status}."
-          exit 1
-        fi
-        if [ "${status}" != 200 ] || ! jq -e --arg ref "refs/tags/${VERSION}" --arg sha "${GITHUB_SHA}" \
-            'type == "object" and .ref == $ref and .object.type == "commit" and .object.sha == $sha' \
-            "${ref_json}" > /dev/null; then
-          echo "::error::Tag ${VERSION} is not a lightweight tag at ${GITHUB_SHA}:"
-          cat "${ref_json}"
-          exit 1
-        fi
-        echo "Tag **${VERSION}** at \`${GITHUB_SHA}\`" >> "${GITHUB_STEP_SUMMARY}"
-
   publish:
-    needs: [prepare, tag]
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     environment:
       name: pypi
       url: https://pypi.org/project/uncertaintylib/${{ needs.prepare.outputs.version }}/
-    # Only the OpenID Connect token for Trusted Publishing; no checkout and no project code here.
+    # contents: write to create the tag, id-token: write for Trusted Publishing. No checkout and no
+    # project code run here: only the artifacts, the GitHub API and the PyPI publish action.
     permissions:
+      contents: write
       id-token: write
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
       RUN_ATTEMPT: ${{ github.run_attempt }}
 
@@ -254,15 +208,6 @@ jobs:
           exit 1
         fi
         (cd dist && sha256sum --check --strict ../manifest/SHA256SUMS)
-    - name: Check the tag still points at the release commit
-      run: |
-        set -euo pipefail
-        tagged=$(git ls-remote "https://github.com/${REPO}.git" "refs/tags/${VERSION}" |
-          awk -v ref="refs/tags/${VERSION}" '$2 == ref { print $1 }')
-        if [ "${tagged}" != "${GITHUB_SHA}" ]; then
-          echo "::error::Tag ${VERSION} points at '${tagged}', expected ${GITHUB_SHA}."
-          exit 1
-        fi
     - name: Check what PyPI already holds for this version
       id: pypi
       # Normally nothing. Files may exist only after an earlier attempt of this run uploaded some of
@@ -310,6 +255,41 @@ jobs:
           echo "${file}: same SHA-256 as the manifest, provenance from ${REPO} release.yml."
         done <<< "${existing}"
         echo "skip_existing=true" >> "${GITHUB_OUTPUT}"
+    - name: Create the tag at the release commit
+      # A lightweight tag, like the earlier release tags. If the tag exists, it is accepted only on
+      # a re-run and only if it points at this commit (an earlier attempt created it).
+      run: |
+        set -euo pipefail
+        ref_json="${RUNNER_TEMP}/ref.json"
+        read_tag() {
+          curl -sS -o "${ref_json}" -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/git/ref/tags/${VERSION}"
+        }
+        status=$(read_tag)
+        if [ "${status}" = 404 ]; then
+          gh api --method POST "repos/${REPO}/git/refs" \
+            -f ref="refs/tags/${VERSION}" -f sha="${GITHUB_SHA}" > /dev/null
+          echo "Created tag ${VERSION} at ${GITHUB_SHA}."
+          status=$(read_tag)
+        elif [ "${status}" = 200 ]; then
+          if [ "${RUN_ATTEMPT}" -le 1 ]; then
+            echo "::error::Tag ${VERSION} already exists, but this is the first attempt of the run."
+            exit 1
+          fi
+          echo "Tag ${VERSION} exists (re-run, attempt ${RUN_ATTEMPT}); checking where it points."
+        else
+          echo "::error::Reading tag ${VERSION} returned HTTP ${status}."
+          exit 1
+        fi
+        if [ "${status}" != 200 ] || ! jq -e --arg ref "refs/tags/${VERSION}" --arg sha "${GITHUB_SHA}" \
+            'type == "object" and .ref == $ref and .object.type == "commit" and .object.sha == $sha' \
+            "${ref_json}" > /dev/null; then
+          echo "::error::Tag ${VERSION} is not a lightweight tag at ${GITHUB_SHA}:"
+          cat "${ref_json}"
+          exit 1
+        fi
+        echo "Tag **${VERSION}** at \`${GITHUB_SHA}\`" >> "${GITHUB_STEP_SUMMARY}"
     - name: Upload to PyPI
       uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
       with:
