@@ -34,6 +34,19 @@ SDIST_FILES = {"pyproject.toml", "README.md", "LICENSE", "PKG-INFO", *MODULES}
 WHEEL_NAME = re.compile(r"uncertaintylib-(?P<version>[^-]+)-py3-none-any\.whl")
 
 
+def _metadata_version(metadata: str) -> str | None:
+    """Return the ``Version`` field of a METADATA or PKG-INFO text, or None if it has none.
+
+    Only the header block (up to the first blank line) is read; the line ending may be LF or CRLF.
+    """
+    for line in metadata.splitlines():
+        if not line:
+            break
+        if line.startswith("Version: "):
+            return line[len("Version: "):]
+    return None
+
+
 def check(dist_dir: Path, expected_version: str | None) -> str:
     """Check the distributions in ``dist_dir`` and return their version.
 
@@ -57,7 +70,8 @@ def check(dist_dir: Path, expected_version: str | None) -> str:
     wheel_modules = {name for name in wheel_names if name.endswith(".py")}
     assert wheel_modules == MODULES, f"wheel modules {sorted(wheel_modules)}, expected {sorted(MODULES)}"
     metadata = zipfile.ZipFile(dist_dir / wheel).read(f"uncertaintylib-{version}.dist-info/METADATA")
-    assert f"\nVersion: {version}\n" in metadata.decode("utf-8"), "wheel METADATA has another version"
+    metadata_version = _metadata_version(metadata.decode("utf-8"))
+    assert metadata_version == version, f"wheel METADATA has version {metadata_version}, expected {version}"
 
     root = f"uncertaintylib-{version}/"
     with tarfile.open(dist_dir / sdist) as archive:
@@ -65,7 +79,8 @@ def check(dist_dir: Path, expected_version: str | None) -> str:
         pkg_info = archive.extractfile(root + "PKG-INFO").read().decode("utf-8")
     missing = {root + name for name in SDIST_FILES} - sdist_names
     assert not missing, f"sdist lacks {sorted(missing)}"
-    assert f"\nVersion: {version}\n" in pkg_info, "sdist PKG-INFO has another version"
+    pkg_info_version = _metadata_version(pkg_info)
+    assert pkg_info_version == version, f"sdist PKG-INFO has version {pkg_info_version}, expected {version}"
 
     print("wheel:", *sorted(wheel_names), sep="\n  ", file=sys.stderr)
     print("sdist:", *sorted(sdist_names), sep="\n  ", file=sys.stderr)
