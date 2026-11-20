@@ -22,8 +22,16 @@ The script:
 ## Key Features
 - **Multiprocessing.Pool**: Uses all available CPU cores for parallel execution
 - **Batch Processing**: Divides total simulations equally across processors
+- **Independent random streams**: Each batch gets its own seed from `numpy.random.SeedSequence(SEED).spawn(...)`
 - **Performance Metrics**: Calculates speedup factor and percentage time reduction
 - **Statistical Validation**: Confirms parallel results match baseline within expected Monte Carlo variability
+
+## Random Number Streams
+`uncertaintylib` draws its Monte Carlo samples from numpy's global random generator (`np.random.normal` / `np.random.uniform`). That generator is not automatically independent between worker processes:
+- With the `fork` start method (the default on Linux up to Python 3.13), every worker inherits a copy of the parent's generator state. Without seeding, all batches would then contain exactly the same random samples, so the parallel result would effectively use only `N / num_processes` independent samples.
+- With the `spawn` start method (Windows, macOS), each worker seeds itself from the operating system. The batches are independent, but the results cannot be reproduced.
+
+The script therefore spawns one child seed per batch from a top-level `SEED` with `numpy.random.SeedSequence(SEED).spawn(num_processes)`. Each batch calls `np.random.seed(...)` with its own seed before sampling. This gives statistically independent batches with every start method, and the results are reproducible for a given `SEED` and number of processes. The sequential baseline is seeded with `SEED` as well.
 
 ## Dependencies
 - pandas
@@ -34,6 +42,11 @@ The script:
 ## Input Data
 - `example_03_input.csv`: CSV file containing input parameters and their uncertainties (same as Example 03)
 
+Units in the CSV: `C` and `epsilon` [-], `D` and `d` [mm], `deltaP` [mbar], `P` [bara], `m/Z` [kg/mol], `T` [K]. The output `qm` is in kg/s.
+
+`m/Z` = 0.021019 kg/mol is the molar mass divided by the compressibility factor (M = 18.125 g/mol, Z = 0.86232), calculated with pvtlib 1.16.1, AGA8 GERG-2008, at P = 100 bara and T = 323.15 K for the dry natural gas composition in pvtlib example "01 Gas Properties from AGA8" (mol%: N2 1.0, CO2 1.0, C1 90.0, C2 5.0, C3 2.0, iC4 0.5, nC4 0.5).
+
+`C` = 0.60282 and `epsilon` = 0.99935 are calculated with pvtlib 1.16.1 according to ISO 5167-2:2022 for an orifice plate with corner tappings (pvtlib default), D = 300 mm, d = 150 mm (beta = 0.5), deltaP = 250.2 mbar and the same gas and state as above. `epsilon` uses `calculate_expansibility_orifice` with isentropic exponent kappa = 1.4236 from AGA8 GERG-2008. `C` uses the Reader-Harris/Gallagher equation, solved iteratively with the Reynolds number in `calculate_flow_orifice` (Re_D = 6.37e6). The density is 78.230 kg/m3 from GERG-2008, and the viscosity is 1.450e-5 Pa s from pvtlib `natural_gas_viscosity_Lee_et_al` (Lee, Gonzalez and Eakin, 1966).
 ## Expected Results
 
 The script outputs:
