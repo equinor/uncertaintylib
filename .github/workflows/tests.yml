@@ -1,16 +1,17 @@
 # Runs the test suite, checks the built distributions and runs the examples.
 #
 # Triggers: every pull request and push to main, nightly (to catch breaking changes in
-# dependencies such as numpy, scipy, pandas, matplotlib and pvtlib), and workflow_call: the
-# publishing workflow (build-and-distribute.yml) calls this workflow on a GitHub release and
-# uploads exactly the files the `package` job built and tested here.
+# dependencies such as numpy, scipy, pandas, matplotlib and pvtlib), and workflow_call: the release
+# workflow (release.yml) runs this whole workflow on the release commit before it builds the
+# release files.
 #
 # Jobs:
 # - test:     flake8 and pytest on Ubuntu (Python 3.10-3.14) and Windows (3.10 and 3.14).
-# - package:  builds the sdist and the wheel once, checks them with `twine check --strict` and
-#             inspects their content, then installs each of them into a clean virtual environment
-#             and runs a copy of tests/ outside the checkout against it. The files are kept as the
-#             artifact `dist`.
+# - package:  builds the sdist and the wheel once (development version from setuptools-scm), checks
+#             them with `twine check --strict` and tools/check_distributions.py, then installs each
+#             of them into a clean virtual environment and runs a copy of tests/ outside the
+#             checkout against it (tools/test_distributions.sh). The files are kept as the
+#             artifact `dist`; they are never published.
 # - examples: runs every example script and notebook headless (tools/run_examples.py).
 # - coverage: test coverage on Python 3.13, kept as the artifact `coverage`.
 #
@@ -46,6 +47,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0  # all tags, so setuptools-scm can work out the version
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
@@ -72,6 +75,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0  # all tags, so setuptools-scm can work out the version
     - name: Set up Python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
@@ -84,68 +89,22 @@ jobs:
       run: |
         twine check --strict dist/*
     - name: Check the file names and the content of the distributions
-      run: |
-        python - <<'PY'
-        import os, pathlib, tarfile, tomllib, zipfile
-
-        version = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"]
-        expected = {f"uncertaintylib-{version}.tar.gz", f"uncertaintylib-{version}-py3-none-any.whl"}
-        found = set(os.listdir("dist"))
-        assert found == expected, f"dist/ holds {sorted(found)}, expected {sorted(expected)}"
-
-        modules = {
-            "uncertaintylib/__init__.py",
-            "uncertaintylib/plot_functions.py",
-            "uncertaintylib/uncertainty_functions.py",
-            "uncertaintylib/uncertainty_models/__init__.py",
-            "uncertaintylib/uncertainty_models/gas_composition.py",
-        }
-        wheel_names = zipfile.ZipFile(f"dist/uncertaintylib-{version}-py3-none-any.whl").namelist()
-        wheel_modules = {name for name in wheel_names if name.endswith(".py")}
-        assert wheel_modules == modules, f"wheel modules {sorted(wheel_modules)}, expected {sorted(modules)}"
-
-        root = f"uncertaintylib-{version}/"
-        sdist_names = set(tarfile.open(f"dist/uncertaintylib-{version}.tar.gz").getnames())
-        required = {root + name for name in ["pyproject.toml", "README.md", "LICENSE", *modules]}
-        missing = required - sdist_names
-        assert not missing, f"sdist lacks {sorted(missing)}"
-
-        print("wheel:", *sorted(wheel_names), sep="\n  ")
-        print("sdist:", *sorted(sdist_names), sep="\n  ")
-        PY
-    - name: Test the wheel and the sdist in clean environments
-      # Each distribution is installed into its own new virtual environment and tested with a copy
-      # of tests/ outside the checkout, so the source tree cannot be imported by accident. The sdist
-      # is unpacked into a folder without .git and installed from there. Inside the pytest session,
-      # tests/test_installed_package.py (enabled by UNCERTAINTYLIB_TEST_INSTALLED) asserts that
-      # uncertaintylib is imported from the virtual environment and reports the pyproject version.
-      env:
-        UNCERTAINTYLIB_TEST_INSTALLED: "1"
-        MPLBACKEND: Agg
+      id: check
+      # The version is the development version setuptools-scm derives from the latest tag, for
+      # example 1.1.3.dev12+g1a2b3c4; the release workflow builds from a tag instead.
       run: |
         set -euo pipefail
-        version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
-        export UNCERTAINTYLIB_EXPECTED_VERSION="${version}"
-        dist="${GITHUB_WORKSPACE}/dist"
-        work="${RUNNER_TEMP}/distribution-test"
-        mkdir -p "${work}/sdist-source"
-        tar -xzf "${dist}/uncertaintylib-${version}.tar.gz" -C "${work}/sdist-source"
-        for kind in wheel sdist; do
-          if [ "${kind}" = wheel ]; then
-            target="${dist}/uncertaintylib-${version}-py3-none-any.whl"
-          else
-            target="${work}/sdist-source/uncertaintylib-${version}"
-          fi
-          echo "::group::${kind}: ${target}"
-          python -m venv "${work}/venv-${kind}"
-          venv_python="${work}/venv-${kind}/bin/python"
-          "${venv_python}" -m pip install --upgrade pip
-          "${venv_python}" -m pip install "${target}" pytest pvtlib
-          rm -rf "${work}/tests-${kind}"
-          cp -r "${GITHUB_WORKSPACE}/tests" "${work}/tests-${kind}"
-          (cd "${work}/tests-${kind}" && "${venv_python}" -m pytest --import-mode=importlib -p no:cacheprovider -rA .)
-          echo "::endgroup::"
-        done
+        version=$(python tools/check_distributions.py dist)
+        echo "version=${version}" >> "${GITHUB_OUTPUT}"
+    - name: Test the wheel and the sdist in clean environments
+      # See tools/test_distributions.sh: each distribution is installed into a new virtual
+      # environment and tested with a copy of tests/ outside the checkout; the sdist is unpacked
+      # into a folder without .git. tests/test_installed_package.py asserts inside the pytest
+      # session that uncertaintylib is imported from the virtual environment with that version.
+      env:
+        VERSION: ${{ steps.check.outputs.version }}
+      run: |
+        bash tools/test_distributions.sh dist "${VERSION}"
     - name: Keep the tested distributions
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
@@ -159,6 +118,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0  # all tags, so setuptools-scm can work out the version
     - name: Set up Python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
@@ -183,6 +144,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0  # all tags, so setuptools-scm can work out the version
     - name: Set up Python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:

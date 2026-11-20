@@ -13,7 +13,8 @@ source tree, so the test is skipped there.
 Environment variables read by the test:
 
 - ``GITHUB_WORKSPACE``: the checkout. The package must not be imported from inside it.
-- ``UNCERTAINTYLIB_EXPECTED_VERSION`` (optional): the version the distribution must report.
+- ``UNCERTAINTYLIB_EXPECTED_VERSION`` (optional): the version the distribution must report, which
+  is the version in the file names of the built distributions.
 """
 
 import importlib.metadata

@@ -1,8 +1,8 @@
 """Tests for the package version, uncertaintylib.__version__.
 
-The version is set in pyproject.toml and read back from the metadata of the installed
-distribution. These tests check that the version the code reports is the version pip installed it
-as, so a calculation can be traced to a release.
+The version is read from the git tag by setuptools-scm when the package is built or installed, and
+written to ``uncertaintylib/_version.py``. These tests check that the version the code reports is
+the version pip installed it as, so a calculation can be traced to a release.
 """
 
 import importlib.metadata

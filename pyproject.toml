@@ -1,10 +1,11 @@
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "uncertaintylib"
-version = "1.1.2"
+# The version is read from the git tag (for example 1.2.0) by setuptools-scm; see docs/releasing.md.
+dynamic = ["version"]
 authors = [
     { name = "Christian Hågenvik", email = "chaagen2013@gmail.com" },
 ]
@@ -57,6 +58,10 @@ Documentation = "https://equinor.github.io/uncertaintylib/"
 
 [tool.setuptools.packages.find]
 include = ["uncertaintylib*"]
+
+[tool.setuptools_scm]
+# Written at build and install time, never committed. uncertaintylib.__version__ reads it.
+version_file = "uncertaintylib/_version.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

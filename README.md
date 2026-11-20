@@ -21,6 +21,8 @@ Install from PyPI:
 pip install uncertaintylib
 ```
 
+To get a specific release, name its version, for example `pip install uncertaintylib==1.1.2`. The installed version is reported by `uncertaintylib.__version__`. Versions follow semantic versioning and are taken from the git release tags; see [Releases and versions](docs/releasing.md).
+
 ## Usage
 
 The main interface is through functions in `uncertaintylib.uncertainty_functions`. You provide:

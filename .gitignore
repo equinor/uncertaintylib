@@ -68,6 +68,9 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+# Written by setuptools-scm at build and install time
+uncertaintylib/_version.py
+
 # Sphinx documentation
 docs/_build/
 docs/_autosummary/
