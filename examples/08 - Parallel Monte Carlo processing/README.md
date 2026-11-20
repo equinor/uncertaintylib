@@ -34,6 +34,11 @@ The script:
 ## Input Data
 - `example_03_input.csv`: CSV file containing input parameters and their uncertainties (same as Example 03)
 
+Units in the CSV: `C` and `epsilon` [-], `D` and `d` [mm], `deltaP` [mbar], `P` [bara], `m/Z` [kg/mol], `T` [K]. The output `qm` is in kg/s.
+
+`m/Z` = 0.021019 kg/mol is the molar mass divided by the compressibility factor (M = 18.125 g/mol, Z = 0.86232), calculated with pvtlib 1.16.1, AGA8 GERG-2008, at P = 100 bara and T = 323.15 K for the dry natural gas composition in pvtlib example "01 Gas Properties from AGA8" (mol%: N2 1.0, CO2 1.0, C1 90.0, C2 5.0, C3 2.0, iC4 0.5, nC4 0.5).
+
+`C` = 0.60282 and `epsilon` = 0.99935 are calculated with pvtlib 1.16.1 according to ISO 5167-2:2022 for an orifice plate with corner tappings (pvtlib default), D = 300 mm, d = 150 mm (beta = 0.5), deltaP = 250.2 mbar and the same gas and state as above. `epsilon` uses `calculate_expansibility_orifice` with isentropic exponent kappa = 1.4236 from AGA8 GERG-2008. `C` uses the Reader-Harris/Gallagher equation, solved iteratively with the Reynolds number in `calculate_flow_orifice` (Re_D = 6.37e6). The density is 78.230 kg/m3 from GERG-2008, and the viscosity is 1.450e-5 Pa s from pvtlib `natural_gas_viscosity_Lee_et_al` (Lee, Gonzalez and Eakin, 1966).
 ## Expected Results
 
 The script outputs:
