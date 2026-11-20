@@ -1,0 +1,7 @@
+# Source archives made by git (such as the "Source code" downloads of a GitHub release) get the
+# commit and tag written into .git_archival.txt, from which setuptools-scm reads the version when
+# there is no .git folder.
+.git_archival.txt  export-subst
+
+# Shell scripts run on Linux runners; keep LF line endings on every checkout.
+*.sh  text eol=lf

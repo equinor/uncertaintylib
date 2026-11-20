@@ -152,18 +152,19 @@ def calculate_sensitivity_coefficients(indata: dict, function: Callable[[dict], 
     indata : dict
         A dictionary containing the input parameters, standard uncertainties, distribution, minimum and maximum values.
         The dictionary must have the following keys:
+
         - 'mean' : dict
-            A dictionary that holds the mean values for each input parameter.
+          A dictionary that holds the mean values for each input parameter.
         - 'standard_uncertainty' : dict
-            A dictionary that holds the standard uncertainty values for each input parameter.
+          A dictionary that holds the standard uncertainty values for each input parameter.
         - 'standard_uncertainty_percent': dict
-            A dictionary that holds the percentage standard uncertainty for each input parameter.
+          A dictionary that holds the percentage standard uncertainty for each input parameter.
         - 'distribution' : dict, optional 
-            A dictionary that holds the distribution used for each parameter. Default is 'normal'
+          A dictionary that holds the distribution used for each parameter. Default is 'normal'
         - 'min': dict, optional
-            A dictionary that holds the minimum values for each input parameter. Not specified if missing.
+          A dictionary that holds the minimum values for each input parameter. Not specified if missing.
         - 'max': dict, optional
-            A dictionary that holds the maximum values for each input parameter. Not specified if missing.
+          A dictionary that holds the maximum values for each input parameter. Not specified if missing.
     function : callable
         A function that takes an input dictionary and returns a dictionary of output parameters.
 
@@ -171,12 +172,13 @@ def calculate_sensitivity_coefficients(indata: dict, function: Callable[[dict], 
     -------
     dict
         A dictionary containing three keys:
+
         - 'absolute_sensitivity_coefficients': dict
-            A dictionary of absolute sensitivity coefficients for each input parameter (key) with respect to each output parameter (sub-key).
+          A dictionary of absolute sensitivity coefficients for each input parameter (key) with respect to each output parameter (sub-key).
         - 'relative_sensitivity_coefficients': dict
-            A dictionary of relative sensitivity coefficients (percentage change in output / percentage change in input) for each input parameter (key) with respect to each output parameter (sub-key).
+          A dictionary of relative sensitivity coefficients (percentage change in output / percentage change in input) for each input parameter (key) with respect to each output parameter (sub-key).
         - 'baseline_results': dict
-            A dictionary of output values for the original inputs (given by the 'mean' input dictionary)
+          A dictionary of output values for the original inputs (given by the 'mean' input dictionary)
     """
     
     input_dict = indata['mean']
@@ -513,6 +515,7 @@ def standard_uncertainty_selector(indata: dict) -> dict:
     ----------
     indata : dict
         A dictionary that holds the following required keys:
+
         'mean' : dict
             A dictionary that holds the mean values for each input parameter.
         'standard_uncertainty' : dict

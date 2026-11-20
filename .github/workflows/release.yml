@@ -1,0 +1,393 @@
+# Releases uncertaintylib: a git tag MAJOR.MINOR.PATCH (no prefix, for example 1.2.0), the sdist and
+# the wheel on PyPI, and a GitHub release with the same two files attached.
+#
+# Runs only when started from the Actions tab (Release -> Run workflow) on branch main, with the
+# part of the version to increase as input. Merges and pushes never release. See docs/releasing.md.
+#
+# The jobs run in this order, all on the one commit the run was started on (github.sha):
+#   1. prepare        - checks the run is on main, works out the version from the existing tags
+#                       (tools/release_version.py) and checks that neither the tag nor the version
+#                       on PyPI exists yet.
+#   2. test           - the full test workflow, tests.yml, called directly.
+#   3. build          - tags the commit locally (not pushed) so setuptools-scm gives the release
+#                       version, builds the sdist and the wheel once, checks them, installs each
+#                       into a clean virtual environment and runs the test suite against it, and
+#                       keeps exactly those files (artifact release-dist) with their SHA-256 sums
+#                       (artifact release-manifest).
+#   4. publish        - waits for approval (environment "pypi", the only approval), checks the
+#                       files against the manifest and what PyPI already holds, creates the tag at
+#                       the release commit through the GitHub API, uploads the tested files to PyPI
+#                       with Trusted Publishing (OpenID Connect; there is no PyPI token) and checks
+#                       that PyPI holds exactly those files.
+#   5. github-release - creates the GitHub release for the tag with the same files attached.
+#
+# If a job fails, use "Re-run failed jobs" in the same run; never start a new run for a version
+# that already has files on PyPI. The publish job accepts its own earlier partial work (tag, files
+# on PyPI) only on a re-run (github.run_attempt > 1). Tags and releases created with GITHUB_TOKEN do not
+# start other workflows, which is why the tests are called from here.
+#
+# No job uses a repository secret.
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Part of the version to increase (latest release 1.1.2 + minor = 1.2.0)."
+        required: true
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+
+permissions:
+  contents: read
+
+# Release runs are queued one after another; a running release is never cancelled.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  PROJECT: uncertaintylib
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+    - name: Only release from main, and only in the first attempt
+      # A later attempt of this job would work out the version from tags that may include the one
+      # this run already created, and so release the next version instead. "Re-run failed jobs"
+      # does not run this job again once it has succeeded; "Re-run all jobs" is refused here.
+      env:
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+      run: |
+        if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+          echo "::error::Releases are made from main only. This run is on ${GITHUB_REF}."
+          exit 1
+        fi
+        if [ "${RUN_ATTEMPT}" != "1" ]; then
+          echo "::error::The prepare job runs only in the first attempt. Use \"Re-run failed jobs\", or start a new run if nothing was published."
+          exit 1
+        fi
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.13'
+    - name: Work out the release version
+      id: version
+      env:
+        BUMP: ${{ inputs.bump }}
+      run: |
+        set -euo pipefail
+        version=$(git tag --list | python tools/release_version.py --bump "${BUMP}")
+        if ! [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "::error::Unexpected version '${version}'."
+          exit 1
+        fi
+        if git rev-parse --quiet --verify "refs/tags/${version}" > /dev/null; then
+          echo "::error::Tag ${version} already exists."
+          exit 1
+        fi
+        # --exit-code: 0 = the tag exists, 2 = it does not, anything else = the check failed.
+        remote_status=0
+        git ls-remote --exit-code --tags origin "refs/tags/${version}" > /dev/null || remote_status=$?
+        if [ "${remote_status}" != 2 ]; then
+          echo "::error::Tag ${version} exists on GitHub, or the check failed (git ls-remote exit ${remote_status})."
+          exit 1
+        fi
+        echo "version=${version}" >> "${GITHUB_OUTPUT}"
+        echo "Release **${version}** (${BUMP}) from commit \`${GITHUB_SHA}\`" >> "${GITHUB_STEP_SUMMARY}"
+    - name: Check the version is not on PyPI yet
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        set -euo pipefail
+        status=$(curl -sS -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/${PROJECT}/${VERSION}/json")
+        if [ "${status}" != 404 ]; then
+          echo "::error::https://pypi.org/pypi/${PROJECT}/${VERSION}/json returned HTTP ${status}, expected 404 (version not on PyPI)."
+          exit 1
+        fi
+
+  test:
+    needs: prepare
+    uses: ./.github/workflows/tests.yml
+
+  build:
+    needs: [prepare, test]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.13'
+    - name: Tag the commit locally
+      # The tag stays local to this job. setuptools-scm takes the version from it just as it will from the
+      # published one. The tests.yml artifacts carry development versions and are not used.
+      run: |
+        set -euo pipefail
+        test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+        git tag "${VERSION}" "${GITHUB_SHA}"
+    - name: Build the sdist and the wheel
+      run: |
+        python -m pip install --upgrade pip build twine
+        python -m build
+    - name: Check the file names, the version and the content
+      run: |
+        python tools/check_distributions.py dist --version "${VERSION}"
+    - name: Check the metadata with twine
+      run: |
+        twine check --strict dist/*
+    - name: Test the wheel and the sdist in clean environments
+      # The same test as the package job in tests.yml: tools/test_distributions.sh.
+      run: |
+        bash tools/test_distributions.sh dist "${VERSION}"
+    - name: Write the SHA-256 manifest
+      run: |
+        set -euo pipefail
+        mkdir manifest
+        (cd dist && sha256sum -- *) > manifest/SHA256SUMS
+        cat manifest/SHA256SUMS
+    - name: Keep the tested distributions
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: release-dist
+        path: dist/
+        if-no-files-found: error
+        retention-days: 90
+    - name: Keep the manifest
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: release-manifest
+        path: manifest/SHA256SUMS
+        if-no-files-found: error
+        retention-days: 90
+
+  publish:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/uncertaintylib/${{ needs.prepare.outputs.version }}/
+    # contents: write to create the tag, id-token: write for Trusted Publishing. No checkout and no
+    # project code run here: only the artifacts, the GitHub API and the PyPI publish action.
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      RUN_ATTEMPT: ${{ github.run_attempt }}
+
+    steps:
+    - name: Fetch the tested distributions
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: release-dist
+        path: dist/
+    - name: Fetch the manifest
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: release-manifest
+        path: manifest/
+    - name: Check the files against the manifest
+      run: |
+        set -euo pipefail
+        expected=$(printf '%s\n' "${PROJECT}-${VERSION}-py3-none-any.whl" "${PROJECT}-${VERSION}.tar.gz" | sort)
+        in_manifest=$(awk '{ sub(/^\*/, "", $2); print $2 }' manifest/SHA256SUMS | sort)
+        in_dist=$(find dist -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
+        if [ "${in_manifest}" != "${expected}" ] || [ "${in_dist}" != "${expected}" ]; then
+          echo "::error::dist/ and the manifest must hold exactly: ${expected}"
+          echo "manifest: ${in_manifest}"
+          echo "dist: ${in_dist}"
+          exit 1
+        fi
+        (cd dist && sha256sum --check --strict ../manifest/SHA256SUMS)
+    - name: Check what PyPI already holds for this version
+      id: pypi
+      # Normally nothing. Files may exist only after an earlier attempt of this run uploaded some of
+      # them: then each must be one of ours (same SHA-256) and carry PyPI provenance from this
+      # repository's release.yml in the environment pypi, and the upload skips them.
+      run: |
+        set -euo pipefail
+        pypi_json="${RUNNER_TEMP}/pypi.json"
+        status=$(curl -sS -o "${pypi_json}" -w '%{http_code}' "https://pypi.org/pypi/${PROJECT}/${VERSION}/json")
+        existing=""
+        if [ "${status}" = 200 ]; then
+          existing=$(jq -r '.urls[] | "\(.digests.sha256)  \(.filename)"' "${pypi_json}")
+        elif [ "${status}" != 404 ]; then
+          echo "::error::https://pypi.org/pypi/${PROJECT}/${VERSION}/json returned HTTP ${status}."
+          exit 1
+        fi
+        if [ -z "${existing}" ]; then
+          echo "PyPI has no files for ${VERSION}."
+          echo "skip_existing=false" >> "${GITHUB_OUTPUT}"
+          exit 0
+        fi
+        echo "PyPI already has files for ${VERSION}:"
+        echo "${existing}"
+        if [ "${RUN_ATTEMPT}" -le 1 ]; then
+          echo "::error::PyPI already has files for ${VERSION}, but this is the first attempt of the run."
+          exit 1
+        fi
+        while IFS= read -r line; do
+          file="${line#*  }"
+          if ! grep -Fxq -- "${line}" manifest/SHA256SUMS; then
+            echo "::error::${file} on PyPI is not in the manifest of this run with the same SHA-256."
+            exit 1
+          fi
+          provenance="${RUNNER_TEMP}/provenance.json"
+          status=$(curl -sS -o "${provenance}" -w '%{http_code}' \
+            -H "Accept: application/vnd.pypi.integrity.v1+json" \
+            "https://pypi.org/integrity/${PROJECT}/${VERSION}/${file}/provenance")
+          if [ "${status}" != 200 ] || ! jq -e --arg repo "${REPO}" \
+              'any(.attestation_bundles[]; .publisher.kind == "GitHub"
+                   and (.publisher.repository | ascii_downcase) == ($repo | ascii_downcase)
+                   and .publisher.workflow == "release.yml"
+                   and .publisher.environment == "pypi")' "${provenance}" > /dev/null; then
+            echo "::error::${file} on PyPI has no provenance from ${REPO} release.yml, environment pypi (HTTP ${status})."
+            exit 1
+          fi
+          echo "${file}: same SHA-256 as the manifest, provenance from ${REPO} release.yml (environment pypi)."
+        done <<< "${existing}"
+        echo "skip_existing=true" >> "${GITHUB_OUTPUT}"
+    - name: Create the tag at the release commit
+      # A lightweight tag, like the earlier release tags. If the tag exists, it is accepted only on
+      # a re-run and only if it points at this commit (an earlier attempt created it).
+      run: |
+        set -euo pipefail
+        ref_json="${RUNNER_TEMP}/ref.json"
+        read_tag() {
+          curl -sS -o "${ref_json}" -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/git/ref/tags/${VERSION}"
+        }
+        status=$(read_tag)
+        if [ "${status}" = 404 ]; then
+          gh api --method POST "repos/${REPO}/git/refs" \
+            -f ref="refs/tags/${VERSION}" -f sha="${GITHUB_SHA}" > /dev/null
+          echo "Created tag ${VERSION} at ${GITHUB_SHA}."
+          status=$(read_tag)
+        elif [ "${status}" = 200 ]; then
+          if [ "${RUN_ATTEMPT}" -le 1 ]; then
+            echo "::error::Tag ${VERSION} already exists, but this is the first attempt of the run."
+            exit 1
+          fi
+          echo "Tag ${VERSION} exists (re-run, attempt ${RUN_ATTEMPT}); checking where it points."
+        else
+          echo "::error::Reading tag ${VERSION} returned HTTP ${status}."
+          exit 1
+        fi
+        if [ "${status}" != 200 ] || ! jq -e --arg ref "refs/tags/${VERSION}" --arg sha "${GITHUB_SHA}" \
+            'type == "object" and .ref == $ref and .object.type == "commit" and .object.sha == $sha' \
+            "${ref_json}" > /dev/null; then
+          echo "::error::Tag ${VERSION} is not a lightweight tag at ${GITHUB_SHA}:"
+          cat "${ref_json}"
+          exit 1
+        fi
+        echo "Tag **${VERSION}** at \`${GITHUB_SHA}\`" >> "${GITHUB_STEP_SUMMARY}"
+    - name: Upload to PyPI
+      uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+      with:
+        packages-dir: dist/
+        skip-existing: ${{ steps.pypi.outputs.skip_existing }}
+        print-hash: true
+    - name: Check PyPI holds exactly the tested files
+      run: |
+        set -euo pipefail
+        expected=$(sed 's/  \*/  /' manifest/SHA256SUMS | sort)
+        for attempt in $(seq 1 30); do
+          found=$(curl -sS "https://pypi.org/pypi/${PROJECT}/${VERSION}/json" |
+            jq -r '.urls[] | "\(.digests.sha256)  \(.filename)"' | sort) || found=""
+          if [ "${found}" = "${expected}" ]; then
+            echo "PyPI holds exactly the tested files:"
+            echo "${found}"
+            echo "Published **${PROJECT} ${VERSION}** - https://pypi.org/project/${PROJECT}/${VERSION}/" >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          echo "Attempt ${attempt}: PyPI does not list exactly the tested files yet; waiting."
+          sleep 20
+        done
+        echo "::error::PyPI does not list exactly the files in the manifest:"
+        echo "expected:"; echo "${expected}"
+        echo "found:"; echo "${found}"
+        exit 1
+
+  github-release:
+    needs: [prepare, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+
+    steps:
+    - name: Fetch the tested distributions
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: release-dist
+        path: dist/
+    - name: Fetch the manifest
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: release-manifest
+        path: manifest/
+    - name: Check the files against the manifest
+      run: |
+        set -euo pipefail
+        in_manifest=$(awk '{ sub(/^\*/, "", $2); print $2 }' manifest/SHA256SUMS | sort)
+        in_dist=$(find dist -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
+        if [ -z "${in_dist}" ] || [ "${in_manifest}" != "${in_dist}" ]; then
+          echo "::error::dist/ does not hold exactly the files in the manifest."
+          exit 1
+        fi
+        (cd dist && sha256sum --check --strict ../manifest/SHA256SUMS)
+    - name: Create the GitHub release, or complete it on a re-run
+      run: |
+        set -euo pipefail
+        release_json="${RUNNER_TEMP}/release.json"
+        status=$(curl -sS -o "${release_json}" -w '%{http_code}' \
+          -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}")
+        if [ "${status}" = 404 ]; then
+          gh release create "${VERSION}" dist/* --repo "${REPO}" --verify-tag --generate-notes --title "${VERSION}"
+        elif [ "${status}" = 200 ]; then
+          echo "Release ${VERSION} exists; adding missing files and checking existing ones."
+          existing_dir="${RUNNER_TEMP}/existing-assets"
+          mkdir -p "${existing_dir}"
+          for path in dist/*; do
+            name=$(basename "${path}")
+            if jq -e --arg name "${name}" 'any(.assets[]; .name == $name)' "${release_json}" > /dev/null; then
+              gh release download "${VERSION}" --repo "${REPO}" --pattern "${name}" --dir "${existing_dir}" --clobber
+              if [ "$(sha256sum < "${existing_dir}/${name}")" != "$(sha256sum < "${path}")" ]; then
+                echo "::error::Release asset ${name} differs from the tested file."
+                exit 1
+              fi
+              echo "${name}: already attached, same SHA-256."
+            else
+              gh release upload "${VERSION}" "${path}" --repo "${REPO}"
+              echo "${name}: attached."
+            fi
+          done
+        else
+          echo "::error::Reading release ${VERSION} returned HTTP ${status}."
+          exit 1
+        fi
+        echo "GitHub release: https://github.com/${REPO}/releases/tag/${VERSION}" >> "${GITHUB_STEP_SUMMARY}"

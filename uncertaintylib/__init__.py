@@ -24,3 +24,11 @@ SOFTWARE.
 from . import uncertainty_functions
 from . import plot_functions
 from . import uncertainty_models
+
+# The version comes from the git tag. setuptools-scm writes _version.py when the package is built
+# or installed; see docs/releasing.md. A source tree that has never been installed has no
+# _version.py, and then reports "0+unknown" rather than pretending to be a release.
+try:
+    from ._version import __version__
+except ImportError:
+    __version__ = "0+unknown"
