@@ -289,9 +289,11 @@ def monte_carlo_simulation(mc_input: dict, function: Callable[[dict], dict], n: 
                     - 'uniform': Generates random samples using a uniform distribution with input parameter minimum and maximum values.
                     - 'none': Generates a fixed value with input parameter mean.
             'min' : dict, optional
-                A dictionary with input parameter names as keys and minimum values for each parameter as values. If not present in 'mc_input', the distribution will not be truncated at a minimum value.
+                A dictionary with input parameter names as keys and minimum values for each parameter as values, in the same unit as 'mean'. 
+                A value of None or nan means no minimum limit. If not present in 'mc_input', the distribution will not be truncated at a minimum value.
             'max' : dict, optional
-                A dictionary with input parameter names as keys and maximum values for each parameter as values. If not present in 'mc_input', the distribution will not be truncated at a maximum value.
+                A dictionary with input parameter names as keys and maximum values for each parameter as values, in the same unit as 'mean'. 
+                A value of None or nan means no maximum limit. If not present in 'mc_input', the distribution will not be truncated at a maximum value.
     function : callable
         The function to be evaluated
     n : int
@@ -322,13 +324,13 @@ def monte_carlo_simulation(mc_input: dict, function: Callable[[dict], dict], n: 
         else:
             distribution = 'normal'
         
-        #Get minimum and maximum values. If not present, or set to nan, these values are set to infinity
-        if 'min' in mc_input and not np.isnan(mc_input['min'][input_var]):
+        #Get minimum and maximum values. If not present, or set to None or nan, these values are set to infinity
+        if 'min' in mc_input and mc_input['min'][input_var] is not None and not np.isnan(mc_input['min'][input_var]):
             min_value = mc_input['min'][input_var]
         else:
             min_value = -np.inf
         
-        if 'max' in mc_input and not np.isnan(mc_input['max'][input_var]):
+        if 'max' in mc_input and mc_input['max'][input_var] is not None and not np.isnan(mc_input['max'][input_var]):
             max_value = mc_input['max'][input_var]
         else:
             max_value = np.inf
