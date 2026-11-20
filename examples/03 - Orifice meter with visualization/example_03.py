@@ -58,7 +58,6 @@ The relative standard uncertainties of C (0.25 %, equal to the ISO 5167-2 value
 of 0.5 % at k=2 for 0.2 <= beta <= 0.6) and epsilon (0.00311 %) are unchanged.
 
 Created on Thu Apr 18 13:11:41 2024
-@author: CHHAG
 """
 
 import os

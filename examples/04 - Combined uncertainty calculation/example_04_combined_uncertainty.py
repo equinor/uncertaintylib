@@ -37,7 +37,6 @@ Part 2: Ultrasonic Flowmeter (USM)
     - Compares the result against a reference case from the NFOGM Fiscal Gas Metering Station Uncertainty (GasMet) tool.
 
 Created on Thu May 23 11:14:03 2024
-@author: CHHAG
 """
 
 from uncertaintylib import uncertainty_functions
