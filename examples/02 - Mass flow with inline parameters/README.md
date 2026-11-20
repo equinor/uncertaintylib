@@ -28,11 +28,6 @@ two. No units are given in the script.
 
 The same values are also in `example_02_input.csv`; the script does not read that file.
 
-## Known issue
-
-With `max` set to `None`, the Monte Carlo step (step 4) currently stops with a `TypeError` from
-`np.isnan(None)` in `monte_carlo_simulation`.
-
 ## Files
 
 - `example_02.py`: the example script

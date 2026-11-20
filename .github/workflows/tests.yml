@@ -131,13 +131,8 @@ jobs:
     - name: Run every example script and notebook
       # The examples are copied to RUNNER_TEMP and run from there; nothing is written back to the
       # checkout. Each script or notebook has 15 minutes.
-      #
-      # Known failure, reported to the owner: example 02 sets 'max' to None, which the README also
-      # documents, and monte_carlo_simulation() raises TypeError on np.isnan(None). The example is
-      # still run; the job fails as soon as it starts to succeed, so this entry gets removed.
       run: |
-        python tools/run_examples.py --work-dir "${RUNNER_TEMP}/examples-run" --timeout-seconds 900 \
-          --expected-failure "02 - Mass flow with inline parameters/example_02.py"
+        python tools/run_examples.py --work-dir "${RUNNER_TEMP}/examples-run" --timeout-seconds 900
 
   coverage:
     runs-on: ubuntu-latest
